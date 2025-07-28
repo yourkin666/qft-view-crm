@@ -162,15 +162,21 @@ const ApiKeys: React.FC = () => {
   const openEditModal = (record?: ApiKey) => {
     if (record) {
       setEditingKey(record);
-      form.setFieldsValue({
-        channelName: record.channelName,
-        isActive: record.isActive,
-      });
     } else {
       setEditingKey(null);
       form.resetFields();
     }
     setModalVisible(true);
+  };
+
+  const handleApiKeyModalAfterOpen = (open: boolean) => {
+    if (open && editingKey) {
+      // 模态框打开后设置表单值
+      form.setFieldsValue({
+        channelName: editingKey.channelName,
+        isActive: editingKey.isActive,
+      });
+    }
   };
 
   // 移动端过滤器内容
@@ -507,6 +513,7 @@ const ApiKeys: React.FC = () => {
           setEditingKey(null);
           form.resetFields();
         }}
+        afterOpenChange={handleApiKeyModalAfterOpen}
         footer={null}
         width={isMobile ? '90%' : 600}
         destroyOnClose

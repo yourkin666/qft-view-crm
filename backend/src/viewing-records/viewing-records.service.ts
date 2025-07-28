@@ -338,31 +338,51 @@ export class ViewingRecordsService {
     }
 
     try {
-      // 首先检查用户有权限访问的记录数量
-      const accessibleCount = await this.prisma.viewingRecord.count({
-        where: whereCondition,
-      });
+      // 使用事务确保数据一致性
+      const result = await this.prisma.$transaction(async (tx) => {
+        // 首先检查用户有权限访问的记录数量
+        const accessibleCount = await tx.viewingRecord.count({
+          where: whereCondition,
+        });
 
-      if (accessibleCount === 0) {
-        throw new BadRequestException('没有找到可更新的记录');
-      }
+        if (accessibleCount === 0) {
+          throw new BadRequestException('没有找到可更新的记录');
+        }
 
-      if (accessibleCount < ids.length) {
-        throw new BadRequestException('部分记录无权访问，无法批量更新');
-      }
+        if (accessibleCount < ids.length) {
+          throw new BadRequestException('部分记录无权访问，无法批量更新');
+        }
 
-      // 执行批量更新
-      const result = await this.prisma.viewingRecord.updateMany({
-        where: whereCondition,
-        data: {
-          viewingStatus: status,
-          ...(remarks && { remarks }),
-        },
+        // 获取要更新的记录详情（用于日志记录）
+        const recordsToUpdate = await tx.viewingRecord.findMany({
+          where: whereCondition,
+          select: {
+            id: true,
+            tenantName: true,
+            viewingStatus: true,
+          },
+        });
+
+        // 执行批量更新
+        const updateResult = await tx.viewingRecord.updateMany({
+          where: whereCondition,
+          data: {
+            viewingStatus: status,
+            ...(remarks && { remarks }),
+            updatedAt: new Date(),
+          },
+        });
+
+        return {
+          updatedCount: updateResult.count,
+          totalRequested: ids.length,
+          updatedRecords: recordsToUpdate,
+        };
       });
 
       return {
-        updatedCount: result.count,
-        totalRequested: ids.length,
+        updatedCount: result.updatedCount,
+        totalRequested: result.totalRequested,
       };
     } catch (error) {
       if (error instanceof BadRequestException) {

@@ -5,13 +5,19 @@ class AuthService {
   // 用户登录
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials);
-    return response.data.data!;
+    if (!response.data.data) {
+      throw new Error('登录响应数据无效');
+    }
+    return response.data.data;
   }
 
   // 获取当前用户信息
   async getCurrentUser(): Promise<User> {
     const response = await api.get<ApiResponse<User>>('/auth/me');
-    return response.data.data!;
+    if (!response.data.data) {
+      throw new Error('用户信息响应数据无效');
+    }
+    return response.data.data;
   }
 
   // 用户登出

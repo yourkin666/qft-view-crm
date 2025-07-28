@@ -31,10 +31,12 @@ export class ApiKeysController {
    */
   @Get()
   findAll(
-    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
-    @Query('pageSize', new ParseIntPipe({ optional: true })) pageSize: number = 10,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10',
   ) {
-    return this.apiKeysService.findAll(page, pageSize);
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageSizeNum = Math.min(100, Math.max(1, parseInt(pageSize) || 10));
+    return this.apiKeysService.findAll(pageNum, pageSizeNum);
   }
 
   /**

@@ -104,6 +104,15 @@ const ViewingRecordDetail: React.FC = () => {
 
   const handleEdit = () => {
     if (currentRecord) {
+      setEditModalVisible(true);
+    } else {
+      message.error('无法加载记录数据，请刷新页面重试');
+    }
+  };
+
+  const handleEditModalAfterOpen = (open: boolean) => {
+    if (open && currentRecord) {
+      // 模态框打开后设置表单值
       const formValues = {
         tenantName: currentRecord.tenantName || '',
         primaryPhone: currentRecord.primaryPhone || '',
@@ -118,9 +127,6 @@ const ViewingRecordDetail: React.FC = () => {
       };
       
       editForm.setFieldsValue(formValues);
-      setEditModalVisible(true);
-    } else {
-      message.error('无法加载记录数据，请刷新页面重试');
     }
   };
 
@@ -414,6 +420,7 @@ const ViewingRecordDetail: React.FC = () => {
         open={editModalVisible}
         onOk={() => editForm.submit()}
         onCancel={() => setEditModalVisible(false)}
+        afterOpenChange={handleEditModalAfterOpen}
         confirmLoading={editLoading}
         width={800}
         destroyOnClose

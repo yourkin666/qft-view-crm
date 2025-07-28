@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import {
   Table,
   Card,
@@ -50,30 +50,12 @@ import dayjs from 'dayjs';
 const { Title } = Typography;
 const { TextArea } = Input;
 
-// Hook to detect mobile screen
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+import { useResponsive } from '../hooks/useResponsive';
 
-  useEffect(() => {
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 480);
-    };
-    
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    
-    return () => {
-      window.removeEventListener('resize', checkDevice);
-    };
-  }, []);
-
-  return isMobile;
-};
-
-const ViewingRecords: React.FC = () => {
+const ViewingRecords: React.FC = memo(() => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const isMobile = useIsMobile();
+  const { isMobile } = useResponsive();
   const { user } = useAppSelector((state) => state.auth);
   const { records, pagination, loading, filters, batchOperationLoading } = useAppSelector((state) => state.viewingRecords);
 
@@ -115,44 +97,50 @@ const ViewingRecords: React.FC = () => {
     dispatch(setFilters({ ...filters, search: value, page: 1 }));
   };
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = useCallback((key: string, value: any) => {
     dispatch(setFilters({ ...filters, [key]: value, page: 1 }));
-  };
+  }, [dispatch, filters]);
 
-  const handleTableChange = (paginationConfig: any) => {
+  const handleTableChange = useCallback((paginationConfig: any) => {
     dispatch(setFilters({
       ...filters,
       page: paginationConfig.current,
       pageSize: paginationConfig.pageSize,
     }));
-  };
+  }, [dispatch, filters]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(fetchViewingRecordsAsync(filters));
-  };
+  }, [dispatch, filters]);
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     setModalMode('create');
     setCurrentRecord(null);
     form.resetFields();
     setModalVisible(true);
-  };
+  }, [form]);
 
-  const handleEdit = (record: any) => {
+  const handleEdit = useCallback((record: any) => {
     setModalMode('edit');
     setCurrentRecord(record);
-    form.setFieldsValue({
-      ...record,
-      viewingDate: record.viewingDate ? dayjs(record.viewingDate) : null,
-    });
     setModalVisible(true);
-  };
+  }, []);
 
-  const handleView = (record: any) => {
+  const handleModalAfterOpen = useCallback((open: boolean) => {
+    if (open && modalMode === 'edit' && currentRecord) {
+      // 模态框打开后设置表单值
+      form.setFieldsValue({
+        ...currentRecord,
+        viewingDate: currentRecord.viewingDate ? dayjs(currentRecord.viewingDate) : null,
+      });
+    }
+  }, [form, modalMode, currentRecord]);
+
+  const handleView = useCallback((record: any) => {
     navigate(`/records/${record.id}`);
-  };
+  }, [navigate]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = useCallback(async (id: number) => {
     try {
       await dispatch(deleteViewingRecordAsync(id)).unwrap();
       message.success('删除成功');
@@ -166,7 +154,7 @@ const ViewingRecords: React.FC = () => {
         message.error('删除失败，请重试');
       }
     }
-  };
+  }, [dispatch]);
 
   const handleModalOk = async () => {
     try {
@@ -254,7 +242,7 @@ const ViewingRecords: React.FC = () => {
   };
 
   // 桌面端表格列配置
-  const columns = [
+  const columns = useMemo(() => [
     {
       title: '租客信息',
       key: 'tenant',
@@ -336,10 +324,10 @@ const ViewingRecords: React.FC = () => {
         </Space>
       ),
     },
-  ];
+  ], [handleView, handleEdit, handleDelete]);
 
   // 移动端过滤器内容
-  const renderMobileFilters = () => (
+  const renderMobileFilters = useCallback(() => (
     <div style={{ padding: '16px' }}>
       <div style={{ marginBottom: 16 }}>
         <Input.Search
@@ -393,7 +381,7 @@ const ViewingRecords: React.FC = () => {
         </Button>
       </Space>
     </div>
-  );
+  ), [handleSearch, handleFilterChange, filters, handleCreate]);
 
   return (
     <div>
@@ -706,6 +694,7 @@ const ViewingRecords: React.FC = () => {
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => setModalVisible(false)}
+        afterOpenChange={handleModalAfterOpen}
         width={isMobile ? '90%' : 800}
         destroyOnClose
       >
@@ -840,6 +829,6 @@ const ViewingRecords: React.FC = () => {
       />
     </div>
   );
-};
+});
 
 export default ViewingRecords; 

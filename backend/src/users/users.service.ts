@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -211,30 +211,37 @@ export class UsersService {
   }
 
   async batchUpdate(ids: number[], updateData: Partial<UpdateUserDto>) {
-    // 验证所有用户是否存在
-    const existingUsers = await this.prisma.user.findMany({
-      where: { id: { in: ids } },
+    return await this.prisma.$transaction(async (tx) => {
+      // 验证所有用户是否存在
+      const existingUsers = await tx.user.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, username: true },
+      });
+
+      if (existingUsers.length !== ids.length) {
+        throw new NotFoundException('部分用户不存在');
+      }
+
+      // 如果要更新密码，进行加密
+      const data: any = { ...updateData };
+      if (updateData.password) {
+        data.password = await bcrypt.hash(updateData.password, 10);
+      }
+
+      // 执行批量更新
+      const result = await tx.user.updateMany({
+        where: { id: { in: ids } },
+        data: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      });
+
+      return { 
+        message: `成功更新 ${result.count} 个用户`,
+        updatedCount: result.count,
+      };
     });
-
-    if (existingUsers.length !== ids.length) {
-      throw new NotFoundException('部分用户不存在');
-    }
-
-    // 如果要更新密码，进行加密
-    const data: any = { ...updateData };
-    if (updateData.password) {
-      data.password = await bcrypt.hash(updateData.password, 10);
-    }
-
-    await this.prisma.user.updateMany({
-      where: { id: { in: ids } },
-      data,
-    });
-
-    return { 
-      message: `成功更新 ${ids.length} 个用户`,
-      updatedCount: ids.length,
-    };
   }
 
   async resetPassword(id: number) {
@@ -256,23 +263,36 @@ export class UsersService {
   }
 
   async batchDelete(ids: number[]) {
-    // 验证所有用户是否存在
-    const existingUsers = await this.prisma.user.findMany({
-      where: { id: { in: ids } },
+    return await this.prisma.$transaction(async (tx) => {
+      // 验证所有用户是否存在
+      const existingUsers = await tx.user.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, username: true },
+      });
+
+      if (existingUsers.length !== ids.length) {
+        throw new NotFoundException('部分用户不存在');
+      }
+
+      // 检查是否有关联的带看记录
+      const relatedRecords = await tx.viewingRecord.count({
+        where: { agentId: { in: ids } },
+      });
+
+      if (relatedRecords > 0) {
+        throw new BadRequestException(`无法删除用户，存在 ${relatedRecords} 条关联的带看记录`);
+      }
+
+      // 执行批量删除
+      const result = await tx.user.deleteMany({
+        where: { id: { in: ids } },
+      });
+
+      return { 
+        message: `成功删除 ${result.count} 个用户`,
+        deletedCount: result.count,
+      };
     });
-
-    if (existingUsers.length !== ids.length) {
-      throw new NotFoundException('部分用户不存在');
-    }
-
-    await this.prisma.user.deleteMany({
-      where: { id: { in: ids } },
-    });
-
-    return { 
-      message: `成功删除 ${ids.length} 个用户`,
-      deletedCount: ids.length,
-    };
   }
 
   async remove(id: number) {

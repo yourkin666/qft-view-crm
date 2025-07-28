@@ -19,6 +19,7 @@ model Role {
   // 关联
   users User[]
 
+  @@index([name], map: "idx_role_name")
   @@map("roles")
 }
 
@@ -32,6 +33,7 @@ model User {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
   
   // 外键
   roleId    Int @map("role_id")
@@ -41,6 +43,10 @@ model User {
   viewingRecords ViewingRecord[]
   apiKeys        ApiKey[]
 
+  @@index([username], map: "idx_username")
+  @@index([phone], map: "idx_phone")
+  @@index([isActive, roleId], map: "idx_active_role")
+  @@index([createdAt], map: "idx_user_created")
   @@map("users")
 }
 
@@ -59,6 +65,9 @@ model ApiKey {
   creator User @relation(fields: [createdBy], references: [id])
   viewingRecords ViewingRecord[]  // 添加带看记录关联
 
+  @@index([isActive], map: "idx_apikey_active")
+  @@index([channelName], map: "idx_channel_name")
+  @@index([createdBy], map: "idx_apikey_creator")
   @@map("api_keys")
 }
 
@@ -73,6 +82,8 @@ model Property {
   // 关联
   viewingRecords ViewingRecord[]
 
+  @@index([name], map: "idx_property_name")
+  @@index([address], map: "idx_property_address")
   @@map("properties")
 }
 
@@ -101,6 +112,7 @@ model ViewingRecord {
   remarks                String?
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
+  deletedAt              DateTime? @map("deleted_at")
   
   // 关联
   agent    User?     @relation(fields: [agentId], references: [id])
@@ -110,7 +122,17 @@ model ViewingRecord {
   @@index([sessionId], map: "idx_session_id")
   @@index([viewingStatus], map: "idx_viewing_status")
   @@index([agentId], map: "idx_agent_id")
-  @@index([apiKeyId], map: "idx_api_key_id")  // 添加API Key索引
+  @@index([apiKeyId], map: "idx_api_key_id")
   @@index([createdAt], map: "idx_created_at")
+  @@index([deletedAt], map: "idx_deleted_at")
+  
+  // 复合索引 - 提升查询性能
+  @@index([viewingStatus, agentId], map: "idx_status_agent")
+  @@index([createdAt, viewingStatus], map: "idx_created_status")
+  @@index([source, apiKeyId], map: "idx_source_apikey")
+  @@index([agentId, createdAt], map: "idx_agent_created")
+  @@index([viewingStatus, createdAt], map: "idx_status_created")
+  @@index([primaryPhone], map: "idx_primary_phone")
+  @@index([tenantName], map: "idx_tenant_name")
   @@map("ai_agent_viewing_records")
 } 

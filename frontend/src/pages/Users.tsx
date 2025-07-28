@@ -164,15 +164,18 @@ const Users: React.FC = () => {
   };
 
   // 处理创建/更新用户
-  const handleSave = async (values: CreateUserRequest | UpdateUserRequest) => {
+  const handleSave = async (values: any) => {
     try {
       if (editingUser) {
+        // 编辑用户，包含所有字段
         await dispatch(updateUserAsync({ 
           id: editingUser.id, 
           data: values as UpdateUserRequest 
         })).unwrap();
       } else {
-        await dispatch(createUserAsync(values as CreateUserRequest)).unwrap();
+        // 创建用户，过滤掉isActive字段
+        const { isActive, ...createData } = values;
+        await dispatch(createUserAsync(createData as CreateUserRequest)).unwrap();
       }
       setModalVisible(false);
       setEditingUser(null);
@@ -243,18 +246,24 @@ const Users: React.FC = () => {
   const openEditModal = (record?: User) => {
     if (record) {
       setEditingUser(record);
-      form.setFieldsValue({
-        username: record.username,
-        fullName: record.fullName,
-        phone: record.phone,
-        roleId: record.role.id,
-        isActive: record.isActive,
-      });
     } else {
       setEditingUser(null);
       form.resetFields();
     }
     setModalVisible(true);
+  };
+
+  const handleUserModalAfterOpen = (open: boolean) => {
+    if (open && editingUser) {
+      // 模态框打开后设置表单值
+      form.setFieldsValue({
+        username: editingUser.username,
+        fullName: editingUser.fullName,
+        phone: editingUser.phone,
+        roleId: editingUser.role.id,
+        isActive: editingUser.isActive,
+      });
+    }
   };
 
   // 批量操作菜单
@@ -808,6 +817,7 @@ const Users: React.FC = () => {
           setEditingUser(null);
           form.resetFields();
         }}
+        afterOpenChange={handleUserModalAfterOpen}
         footer={null}
         width={isMobile ? '90%' : 600}
         destroyOnClose
@@ -816,7 +826,7 @@ const Users: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSave}
-          initialValues={{ isActive: true, roleId: 2 }} // 默认为经纪人角色
+          initialValues={{ roleId: 2 }} // 默认为经纪人角色
         >
           <Row gutter={isMobile ? 0 : 16}>
             <Col span={isMobile ? 24 : 12}>
@@ -896,13 +906,15 @@ const Users: React.FC = () => {
             </Col>
           </Row>
 
-          <Form.Item
-            label="账号状态"
-            name="isActive"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="激活" unCheckedChildren="禁用" />
-          </Form.Item>
+          {editingUser && (
+            <Form.Item
+              label="账号状态"
+              name="isActive"
+              valuePropName="checked"
+            >
+              <Switch checkedChildren="激活" unCheckedChildren="禁用" />
+            </Form.Item>
+          )}
 
           <Form.Item>
             <Space style={{ width: '100%', justifyContent: isMobile ? 'center' : 'flex-start' }}>

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npm install)",
+      "Bash(npm run start:dev:*)",
+      "Bash(pnpm install:*)",
+      "Bash(npx nest start:*)",
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npm run:*)",
+      "Bash(npx prisma migrate reset:*)",
+      "Bash(pkill:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(ls:*)",
+      "Bash(start http://localhost:3001/api/docs)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

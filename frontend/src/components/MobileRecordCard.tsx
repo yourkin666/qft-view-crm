@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Card, Tag, Button, Space, Typography, Divider } from 'antd';
 import {
   EditOutlined,
@@ -10,25 +10,26 @@ import {
   PhoneOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { ViewingRecord } from '../types';
 
 const { Text, Paragraph } = Typography;
 
 interface MobileRecordCardProps {
-  record: any;
-  onEdit: (record: any) => void;
+  record: ViewingRecord;
+  onEdit: (record: ViewingRecord) => void;
   onDelete: (id: number) => void;
-  onView: (record: any) => void;
+  onView: (record: ViewingRecord) => void;
   showActions?: boolean;
 }
 
-const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
+const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
   record,
   onEdit,
   onDelete,
   onView,
   showActions = true
 }) => {
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     const colors = {
       pending: 'orange',
       confirmed: 'blue',
@@ -36,9 +37,9 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
       cancelled: 'red',
     };
     return colors[status as keyof typeof colors] || 'default';
-  };
+  }, []);
 
-  const getStatusText = (status: string) => {
+  const getStatusText = useCallback((status: string) => {
     const texts = {
       pending: '待确认',
       confirmed: '已确认',
@@ -46,15 +47,30 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
       cancelled: '已取消',
     };
     return texts[status as keyof typeof texts] || status;
-  };
+  }, []);
 
-  const getBusinessTypeText = (type: string) => {
+  const getBusinessTypeText = useCallback((type: string) => {
     const types = {
       rent: '租赁',
       sale: '买卖',
     };
     return types[type as keyof typeof types] || type;
-  };
+  }, []);
+
+  const handleEdit = useCallback(() => onEdit(record), [record, onEdit]);
+  const handleDelete = useCallback(() => onDelete(record.id), [record.id, onDelete]);
+  const handleView = useCallback(() => onView(record), [record, onView]);
+
+  const formattedDate = useMemo(() => {
+    return dayjs(record.viewingDate).format('MM-DD HH:mm');
+  }, [record.viewingDate]);
+
+  const statusColor = useMemo(() => getStatusColor(record.viewingStatus), [record.viewingStatus, getStatusColor]);
+  const statusText = useMemo(() => getStatusText(record.viewingStatus), [record.viewingStatus, getStatusText]);
+  const businessTypeText = useMemo(() => 
+    record.businessType ? getBusinessTypeText(record.businessType) : null, 
+    [record.businessType, getBusinessTypeText]
+  );
 
   return (
     <Card
@@ -75,12 +91,12 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
         marginBottom: 8
       }}>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        <Tag color={getStatusColor(record.viewingStatus)}>
-          {getStatusText(record.viewingStatus)}
+        <Tag color={statusColor}>
+          {statusText}
         </Tag>
-          {record.businessType && (
+          {businessTypeText && (
         <Tag color="geekblue">
-          {getBusinessTypeText(record.businessType)}
+          {businessTypeText}
         </Tag>
           )}
           <Tag color={record.channelType === 'API' ? 'blue' : 'green'} style={{ fontSize: 10 }}>
@@ -123,7 +139,7 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <CalendarOutlined style={{ color: '#fa8c16', marginRight: 6 }} />
           <Text style={{ fontSize: 12 }} type="secondary">
-            {dayjs(record.viewingDate).format('MM-DD HH:mm')}
+            {formattedDate}
           </Text>
           {record.agent && (
             <>
@@ -165,7 +181,7 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
               type="text" 
               size="small"
               icon={<EyeOutlined />}
-              onClick={() => onView(record)}
+              onClick={handleView}
             >
               查看
             </Button>
@@ -173,7 +189,7 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
               type="text" 
               size="small"
               icon={<EditOutlined />}
-              onClick={() => onEdit(record)}
+              onClick={handleEdit}
             >
               编辑
             </Button>
@@ -182,7 +198,7 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = ({
               size="small"
               danger
               icon={<DeleteOutlined />}
-              onClick={() => onDelete(record.id)}
+              onClick={handleDelete}
             >
               删除
             </Button>

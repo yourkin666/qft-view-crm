@@ -11,7 +11,6 @@ export interface CreateUserRequest {
   fullName: string;
   phone?: string;
   roleId: number;
-  isActive?: boolean;
 }
 
 export interface UpdateUserRequest {

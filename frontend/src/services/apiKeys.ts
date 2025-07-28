@@ -26,15 +26,21 @@ export const apiKeysService = {
   },
 
   // 获取单个API密钥详情
-  async getApiKey(id: number): Promise<ApiResponse<ApiKey>> {
+  async getApiKey(id: number): Promise<ApiKey> {
     const response = await api.get<ApiResponse<ApiKey>>(`/api-keys/${id}`);
-    return response.data;
+    if (!response.data.data) {
+      throw new Error('API密钥详情响应数据无效');
+    }
+    return response.data.data;
   },
 
   // 创建API密钥
-  async createApiKey(data: CreateApiKeyRequest): Promise<ApiResponse<ApiKey>> {
+  async createApiKey(data: CreateApiKeyRequest): Promise<ApiKey> {
     const response = await api.post<ApiResponse<ApiKey>>('/api-keys', data);
-    return response.data;
+    if (!response.data.data) {
+      throw new Error('创建API密钥响应数据无效');
+    }
+    return response.data.data;
   },
 
   // 更新API密钥
