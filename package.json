@@ -1,0 +1,32 @@
+{
+  "name": "qft-view-crm",
+  "version": "1.0.0",
+  "description": "房源带看CRM系统 - 全栈应用",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "start": "concurrently \"npm run backend:start\" \"npm run frontend:build && npm run frontend:preview\"",
+    "backend:dev": "cd backend && npm run start:dev",
+    "backend:start": "cd backend && npm run start:prod",
+    "backend:build": "cd backend && npm run build",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "frontend:preview": "cd frontend && npm run preview",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build:all": "npm run backend:build && npm run frontend:build",
+    "clean": "rm -rf backend/dist frontend/dist backend/node_modules frontend/node_modules node_modules",
+    "db:reset": "cd backend && npx prisma migrate reset --force && npx prisma db seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "crm",
+    "real-estate",
+    "nest",
+    "react",
+    "typescript"
+  ],
+  "author": "QFT Team",
+  "license": "MIT"
+} 

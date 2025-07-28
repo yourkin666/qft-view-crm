@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 角色表
+model Role {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+  
+  // 关联
+  users User[]
+
+  @@map("roles")
+}
+
+// 用户表
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  fullName  String?  @map("full_name")
+  phone     String?  @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 外键
+  roleId    Int @map("role_id")
+  
+  // 关联
+  role           Role             @relation(fields: [roleId], references: [id])
+  viewingRecords ViewingRecord[]
+  apiKeys        ApiKey[]
+
+  @@map("users")
+}
+
+// API密钥表
+model ApiKey {
+  id            Int      @id @default(autoincrement())
+  channelName   String   @map("channel_name")
+  apiKey        String   @unique @map("api_key")
+  apiSecretHash String   @map("api_secret_hash")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdBy     Int      @map("created_by")
+  
+  // 关联
+  creator User @relation(fields: [createdBy], references: [id])
+  viewingRecords ViewingRecord[]  // 添加带看记录关联
+
+  @@map("api_keys")
+}
+
+// 房源表
+model Property {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 关联
+  viewingRecords ViewingRecord[]
+
+  @@map("properties")
+}
+
+// 带看记录表 - 房源带看记录表
+model ViewingRecord {
+  id                     Int       @id @default(autoincrement())
+  tenantName             String?   @map("tenant_name")
+  sessionId              String?   @map("session_id")
+  requirementsJson       String?   @map("requirements_json")
+  originalQuery          String?   @map("original_query")
+  aiSummary              String?   @map("ai_summary")
+  primaryPhone           String?   @map("primary_phone")
+  primaryWechat          String?   @map("primary_wechat")
+  viewingDate            DateTime? @map("viewing_date")
+  roomId                 Int?      @map("room_id")
+  businessType           String?   @map("business_type")
+  propertyName           String?   @map("property_name")
+  roomAddress            String?   @map("room_address")
+  preferredViewingTime   String?   @map("preferred_viewing_time")
+  viewingStatus          String    @default("pending") @map("viewing_status")
+  agentId                Int?      @map("agent_id")
+  agentName              String?   @map("agent_name")
+  agentPhone             String?   @map("agent_phone")
+  source                 String    @default("manual")
+  apiKeyId               Int?      @map("api_key_id")  // 添加API Key关联
+  remarks                String?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+  
+  // 关联
+  agent    User?     @relation(fields: [agentId], references: [id])
+  property Property? @relation(fields: [roomId], references: [id])
+  apiKey   ApiKey?   @relation(fields: [apiKeyId], references: [id])  // 添加API Key关联
+  
+  @@index([sessionId], map: "idx_session_id")
+  @@index([viewingStatus], map: "idx_viewing_status")
+  @@index([agentId], map: "idx_agent_id")
+  @@index([apiKeyId], map: "idx_api_key_id")  // 添加API Key索引
+  @@index([createdAt], map: "idx_created_at")
+  @@map("ai_agent_viewing_records")
+} 

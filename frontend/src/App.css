@@ -1,0 +1,387 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+#root {
+  height: 100%;
+}
+
+.App {
+  height: 100%;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式设计 */
+
+/* 平板端和中等屏幕优化 (481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  body {
+    font-size: 15px;
+  }
+  
+  .ant-layout-content {
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .ant-layout-header {
+    padding: 0 20px;
+  }
+}
+
+/* 移动端优化 (480px及以下) */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  /* 移动端表单优化 */
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+  
+  .ant-input, .ant-select-selector, .ant-picker {
+    height: 40px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+  
+  .ant-btn {
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .ant-btn-sm {
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  /* 移动端模态框优化 */
+  .ant-modal {
+    max-width: calc(100vw - 32px);
+    margin: 16px auto;
+  }
+  
+  .ant-modal-content {
+    border-radius: 12px;
+  }
+  
+  .ant-modal-header {
+    padding: 16px 24px 12px;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .ant-modal-body {
+    padding: 12px 24px 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  .ant-modal-footer {
+    padding: 12px 24px 16px;
+    border-radius: 0 0 12px 12px;
+  }
+  
+  /* 移动端抽屉优化 */
+  .ant-drawer-content {
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .ant-drawer-header {
+    padding: 16px 20px 12px;
+  }
+  
+  .ant-drawer-body {
+    padding: 0;
+  }
+  
+  /* 移动端卡片优化 */
+  .ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ant-card-small .ant-card-body {
+    padding: 12px 16px;
+  }
+  
+  /* 移动端分页优化 */
+  .ant-pagination {
+    text-align: center;
+  }
+  
+  .ant-pagination-item, .ant-pagination-prev, .ant-pagination-next {
+    min-width: 32px;
+    height: 32px;
+    line-height: 30px;
+  }
+  
+  /* 移动端标签优化 */
+  .ant-tag {
+    margin-right: 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+  
+  /* 移动端表格隐藏 */
+  .ant-table-wrapper {
+    display: none;
+  }
+  
+  /* 移动端操作栏 */
+  .mobile-action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 16px;
+  }
+  
+  /* 移动端记录卡片 */
+  .mobile-record-card {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s;
+  }
+  
+  .mobile-record-card:active {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* 移动端图标大小 */
+  .anticon {
+    font-size: 14px;
+  }
+  
+  /* 移动端文字大小调整 */
+  .ant-typography h1 {
+    font-size: 20px;
+  }
+  
+  .ant-typography h2 {
+    font-size: 18px;
+  }
+  
+  .ant-typography h3 {
+    font-size: 16px;
+  }
+  
+  /* 移动端Space组件优化 */
+  .ant-space-item {
+    margin-bottom: 8px;
+  }
+  
+  /* 移动端触摸友好 */
+  /* 增大可点击区域 */
+  .ant-btn, .ant-select-selector, .ant-input, .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+}
+
+  /* 优化间距 */
+  .ant-space {
+    gap: 12px !important;
+  }
+  
+  /* 表单项间距 */
+  .ant-form-vertical .ant-form-item {
+    margin-bottom: 20px;
+  }
+  
+  /* 卡片间距 */
+  .ant-card + .ant-card {
+    margin-top: 16px;
+  }
+  
+  /* 按钮组优化 */
+  .ant-btn-group .ant-btn {
+    flex: 1;
+  }
+  
+  /* 标签间距 */
+  .ant-tag {
+    margin: 2px 4px 2px 0;
+  }
+  
+  /* 列表项优化 */
+  .ant-list-item {
+    padding: 16px;
+  }
+  
+  /* 分割线优化 */
+  .ant-divider {
+    margin: 16px 0;
+  }
+  
+  .ant-layout-content {
+    margin: 8px;
+    padding: 12px;
+  }
+  
+  .ant-layout-header {
+    padding: 0 12px;
+  }
+}
+
+/* Ant Design 自定义样式 */
+.ant-layout {
+  min-height: 100vh;
+}
+
+.ant-layout-header {
+  padding: 0 24px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.ant-layout-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.ant-layout-content {
+  margin: 24px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 表格响应式 */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+@media (max-width: 480px) {
+  .ant-layout-content {
+    margin: 16px;
+    padding: 16px;
+  }
+  
+  .ant-layout-header {
+    padding: 0 16px;
+  }
+}
+
+/* 登录页面样式 */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 32px;
+  color: #1890ff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* 统计卡片样式 */
+.stats-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.stats-card .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.stats-card .ant-statistic-content {
+  color: white;
+}
+
+/* 状态标签样式 */
+.status-tag {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* 工具栏样式 */
+.page-toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* 加载动画 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* 空状态样式 */
+.empty-container {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+}
+
+/* 自定义按钮间距 */
+.action-buttons .ant-btn {
+  margin-right: 8px;
+}
+
+.action-buttons .ant-btn:last-child {
+  margin-right: 0;
+}
