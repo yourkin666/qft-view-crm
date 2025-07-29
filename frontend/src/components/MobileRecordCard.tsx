@@ -207,6 +207,6 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
       )}
     </Card>
   );
-};
+});
 
 export default MobileRecordCard; 

@@ -15,25 +15,25 @@ class ViewingRecordsService {
     const response = await api.get<ApiResponse<PaginatedResponse<ViewingRecord>>>('/viewing-records', {
       params
     });
-    return response.data.data;
+    return response.data.data!;
   }
 
   // 获取单个带看记录
   async getViewingRecord(id: number): Promise<ViewingRecord> {
     const response = await api.get<ApiResponse<ViewingRecord>>(`/viewing-records/${id}`);
-    return response.data.data;
+    return response.data.data!;
   }
 
   // 创建带看记录
   async createViewingRecord(data: CreateViewingRecordRequest): Promise<ViewingRecord> {
     const response = await api.post<ApiResponse<ViewingRecord>>('/viewing-records', data);
-    return response.data.data;
+    return response.data.data!;
   }
 
   // 更新带看记录
   async updateViewingRecord(id: number, data: Partial<CreateViewingRecordRequest>): Promise<ViewingRecord> {
     const response = await api.patch<ApiResponse<ViewingRecord>>(`/viewing-records/${id}`, data);
-    return response.data.data;
+    return response.data.data!;
   }
 
   // 删除带看记录
@@ -44,13 +44,13 @@ class ViewingRecordsService {
   // 获取统计数据
   async getStatistics(): Promise<Statistics> {
     const response = await api.get<ApiResponse<Statistics>>('/viewing-records/statistics');
-    return response.data.data;
+    return response.data.data!;
   }
 
   // 批量更新记录
   async batchUpdateViewingRecords(data: BatchUpdateRequest): Promise<{ updated: number }> {
     const response = await api.patch<ApiResponse<{ updated: number }>>('/viewing-records/batch-update', data);
-    return response.data.data;
+    return response.data.data!;
   }
 }
 

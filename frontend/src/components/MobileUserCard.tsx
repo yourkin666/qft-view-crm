@@ -8,10 +8,7 @@ import {
   Dropdown,
   MenuProps,
   Modal,
-  Descriptions,
-  Statistic,
-  Row,
-  Col
+  Descriptions
 } from 'antd';
 import { 
   EditOutlined, 
@@ -19,14 +16,12 @@ import {
   MoreOutlined,
   UserOutlined,
   KeyOutlined,
-  EyeOutlined,
-  PhoneOutlined,
-  MailOutlined
+  EyeOutlined
 } from '@ant-design/icons';
-import type { User } from '@/types';
+import type { User } from '../types';
 import dayjs from 'dayjs';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface MobileUserCardProps {
   user: User;

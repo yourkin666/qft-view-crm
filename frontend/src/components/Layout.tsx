@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
 
     // 管理员专用菜单
-    ...((user?.role?.name === 'admin' || user?.role === 'admin') ? [
+    ...(user?.role?.name === 'admin' ? [
       {
         key: '/users',
         icon: <UserOutlined />,
@@ -210,7 +210,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
             {!isMobile && (
               <span style={{ color: '#666', fontSize: isMobile ? 12 : 14 }}>
-                {(user?.role?.name === 'admin' || user?.role === 'admin') ? '管理员' : '经纪人'}: {user?.fullName || user?.username}
+                {user?.role?.name === 'admin' ? '管理员' : '经纪人'}: {user?.fullName || user?.username}
               </span>
             )}
             

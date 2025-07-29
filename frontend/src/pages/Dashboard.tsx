@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Button, Table, Tag, Space, Typography } from 'antd';
+import { Row, Col, Card, Statistic, Button, Table, Tag, Typography } from 'antd';
 import { 
   TeamOutlined, 
   FileTextOutlined, 
@@ -15,7 +15,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { fetchStatisticsAsync, fetchViewingRecordsAsync } from '../store/slices/viewingRecordsSlice';
 import dayjs from 'dayjs';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 // Hook to detect mobile screen
 const useIsMobile = () => {

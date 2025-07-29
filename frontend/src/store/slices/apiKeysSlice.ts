@@ -48,7 +48,7 @@ export const fetchApiKeyAsync = createAsyncThunk(
   'apiKeys/fetchApiKey',
   async (id: number) => {
     const response = await apiKeysService.getApiKey(id);
-    return response.data;
+    return response;
   }
 );
 
@@ -57,8 +57,8 @@ export const createApiKeyAsync = createAsyncThunk(
   'apiKeys/createApiKey',
   async (data: CreateApiKeyRequest) => {
     const response = await apiKeysService.createApiKey(data);
-    message.success(response.message || 'API密钥创建成功');
-    return response.data;
+    message.success('API密钥创建成功');
+    return response;
   }
 );
 
