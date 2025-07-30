@@ -14,7 +14,7 @@ import {
 } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/hooks/redux';
-import { exportService, ExportParams } from '@/services/export';
+import { exportDataAPI, ExportParams } from '@/services/export';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -71,7 +71,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
         params.dateTo = values.dateRange[1].endOf('day').toISOString();
       }
 
-      await exportService.exportViewingRecords(params);
+      await exportDataAPI(params);
       message.success('导出成功');
       onCancel();
     } catch (error: any) {
@@ -84,7 +84,7 @@ const ExportModal: React.FC<ExportModalProps> = ({
 
   return (
     <Modal
-      title="导出带看记录"
+      title="导出线索记录"
       open={visible}
       onCancel={onCancel}
       footer={null}

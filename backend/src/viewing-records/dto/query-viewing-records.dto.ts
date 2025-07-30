@@ -1,19 +1,27 @@
-import { IsOptional, IsString, IsInt, IsEnum, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
+import { Transform } from 'class-transformer';
+// import { ViewingStatus, BusinessType, SourcePlatform, CustomerStatus, CustomerRoomType } from './create-viewing-record.dto';
 import { ViewingStatus, BusinessType } from './create-viewing-record.dto';
 
 export class QueryViewingRecordsDto {
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return 1;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 1 : parsed;
+  })
   @IsInt({ message: '页码必须是整数' })
-  @Min(1, { message: '页码最小为1' })
+  @Min(1, { message: '页码必须大于0' })
   page?: number = 1;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return 10;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 10 : parsed;
+  })
   @IsInt({ message: '每页数量必须是整数' })
-  @Min(1, { message: '每页数量最小为1' })
-  @Max(100, { message: '每页数量最大为100' })
+  @Min(1, { message: '每页数量必须大于0' })
   pageSize?: number = 10;
 
   @IsOptional()
@@ -21,7 +29,6 @@ export class QueryViewingRecordsDto {
   status?: ViewingStatus;
 
   @IsOptional()
-  @Type(() => Number)
   @IsInt({ message: '经纪人ID必须是整数' })
   agentId?: number;
 
@@ -36,4 +43,21 @@ export class QueryViewingRecordsDto {
   @IsOptional()
   @IsEnum(BusinessType, { message: '业务类型无效' })
   businessType?: BusinessType;
+
+  // 暂时注释新增字段的查询
+  // @IsOptional()
+  // @IsEnum(SourcePlatform, { message: '线索来源平台无效' })
+  // sourcePlatform?: SourcePlatform;
+
+  // @IsOptional()
+  // @IsEnum(CustomerRoomType, { message: '客户需求房源类型无效' })
+  // customerRoomType?: CustomerRoomType;
+
+  // @IsOptional()
+  // @IsEnum(CustomerStatus, { message: '客户状态无效' })
+  // customerStatus?: CustomerStatus;
+
+  // @IsOptional()
+  // @IsEnum(SourcePlatform, { message: '当前跟进平台无效' })
+  // followUpPlatform?: SourcePlatform;
 } 

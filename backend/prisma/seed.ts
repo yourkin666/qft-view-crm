@@ -96,34 +96,35 @@ async function main() {
     },
   });
 
-  // 6. 创建示例带看记录
-  console.log('📋 创建示例带看记录...');
-  await prisma.viewingRecord.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
+  // 6. 创建示例线索记录
+  console.log('📋 创建示例线索记录...');
+  const sampleRecord = await prisma.viewingRecord.create({
+    data: {
       tenantName: '李先生',
+      sessionId: null,
+      requirementsJson: JSON.stringify({
+        budget: '8000-10000',
+        location: '南山区',
+        roomType: '2室1厅'
+      }),
+      originalQuery: '想在南山区找一个2室1厅的房子，预算8-10k',
+      aiSummary: '客户需求：南山区2室1厅，预算8000-10000元',
       primaryPhone: '13900139000',
       primaryWechat: 'li_wechat_001',
+      viewingDate: null,
       roomId: property1.id,
       businessType: 'focus',
-      propertyName: property1.name,
+      propertyName: '华润城润府',
       roomAddress: '深圳市南山区深南大道华润城A座1101',
       preferredViewingTime: '明天下午2-4点',
       viewingStatus: 'pending',
       agentId: agentUser.id,
-      agentName: agentUser.fullName,
-      agentPhone: agentUser.phone,
+      agentName: '张经纪',
+      agentPhone: '13800138001',
       source: 'manual',
+      apiKeyId: null,
       remarks: '客户对地理位置很满意，希望看看具体房间情况',
-      requirementsJson: JSON.stringify({
-        budget: '8000-10000',
-        location: '南山区',
-        roomType: '2室1厅',
-      }),
-      originalQuery: '想在南山区找一个2室1厅的房子，预算8-10k',
-      aiSummary: '客户需求：南山区2室1厅，预算8000-10000元',
-    },
+    }
   });
 
   console.log('✅ 数据库种子数据初始化完成!');
@@ -132,7 +133,7 @@ async function main() {
   console.log(`   - 用户: admin (密码: Admin123!), agent001 (密码: Agent123!)`);
   console.log(`   - 房源: ${property1.name}, ${property2.name}`);
   console.log(`   - API密钥: qft-api-key-demo`);
-  console.log(`   - 带看记录: 1条示例记录`);
+  console.log(`   - 线索记录: 1条示例记录`);
 }
 
 main()

@@ -32,12 +32,12 @@ export class PublicController {
   constructor(private readonly publicService: PublicService) {}
 
   @ApiOperation({ 
-    summary: '创建第三方带看记录', 
-    description: '通过第三方API创建新的带看记录，需要API密钥认证' 
+    summary: '创建第三方线索记录', 
+    description: '通过第三方API创建新的线索记录，需要API密钥认证' 
   })
   @ApiResponse({ 
     status: 201, 
-    description: '成功创建带看记录',
+    description: '成功创建线索记录',
     example: {
       success: true,
       data: {
@@ -63,8 +63,8 @@ export class PublicController {
   }
 
   @ApiOperation({ 
-    summary: '获取第三方带看记录列表', 
-    description: '分页获取第三方创建的带看记录，支持状态筛选' 
+    summary: '获取第三方线索记录列表', 
+    description: '分页获取第三方创建的线索记录，支持状态筛选' 
   })
   @ApiQuery({ name: 'page', required: false, description: '页码', example: 1 })
   @ApiQuery({ name: 'pageSize', required: false, description: '每页数量', example: 10 })
@@ -109,10 +109,10 @@ export class PublicController {
   }
 
   @ApiOperation({ 
-    summary: '获取第三方带看记录详情', 
-    description: '根据ID获取第三方创建的带看记录详细信息' 
+    summary: '获取第三方线索记录详情', 
+    description: '根据ID获取第三方创建的线索记录详细信息' 
   })
-  @ApiParam({ name: 'id', description: '带看记录ID', type: 'number', example: 123 })
+  @ApiParam({ name: 'id', description: '线索记录ID', type: 'number', example: 123 })
   @ApiResponse({ 
     status: 200, 
     description: '成功获取记录详情',
@@ -150,10 +150,10 @@ export class PublicController {
   }
 
   @ApiOperation({ 
-    summary: '更新第三方带看记录状态', 
-    description: '更新第三方创建的带看记录的状态' 
+    summary: '更新第三方线索记录状态', 
+    description: '更新第三方创建的线索记录的状态' 
   })
-  @ApiParam({ name: 'id', description: '带看记录ID', type: 'number', example: 123 })
+  @ApiParam({ name: 'id', description: '线索记录ID', type: 'number', example: 123 })
   @ApiBody({ type: UpdateStatusDto })
   @ApiResponse({ 
     status: 200, 

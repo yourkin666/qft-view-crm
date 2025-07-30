@@ -10,7 +10,6 @@ import Layout from './components/Layout';
 
 // 懒加载页面组件
 const Login = lazy(() => import('./pages/Login'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ViewingRecords = lazy(() => import('./pages/ViewingRecords'));
 const ViewingRecordDetail = lazy(() => import('./pages/ViewingRecordDetail'));
 const Users = lazy(() => import('./pages/Users'));
@@ -24,9 +23,11 @@ const PageSpin = () => (
     display: 'flex', 
     justifyContent: 'center', 
     alignItems: 'center', 
-    height: '200px' 
+    height: '100vh',
+    flexDirection: 'column'
   }}>
-    <Spin size="large" tip="加载中..." />
+    <Spin size="large" />
+    <div style={{ marginTop: 16, color: '#666' }}>加载中...</div>
   </div>
 );
 
@@ -40,7 +41,7 @@ function App() {
               <Suspense fallback={<PageSpin />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/" element={<Navigate to="/records" replace />} />
                   <Route
                     path="/*"
                     element={
@@ -49,7 +50,6 @@ function App() {
                           <ErrorBoundary>
                             <Suspense fallback={<PageSpin />}>
                               <Routes>
-                                <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/records" element={<ViewingRecords />} />
                                 <Route path="/records/:id" element={<ViewingRecordDetail />} />
                                 <Route path="/users" element={<Users />} />

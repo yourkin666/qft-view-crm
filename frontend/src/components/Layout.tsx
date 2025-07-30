@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Layout as AntLayout, Menu, Avatar, Dropdown, Button, theme, Drawer } from 'antd';
 import {
-  MenuFoldOutlined, 
+  MenuFoldOutlined,
   MenuUnfoldOutlined,
-  DashboardOutlined,
-  FileTextOutlined,
-  UserOutlined,
   LogoutOutlined,
+  UserOutlined,
+  FileTextOutlined,
   KeyOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -50,14 +49,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // 侧边栏菜单项
   const menuItems = [
     {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: '工作台',
-    },
-    {
       key: '/records',
       icon: <FileTextOutlined />,
-      label: '带看记录',
+      label: '线索记录',
     },
 
     // 管理员专用菜单
@@ -125,7 +119,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         {collapsed && !isMobile ? 'CRM' : '房源带看CRM'}
       </div>
-      
+
       <Menu
         theme="dark"
         mode="inline"
@@ -146,8 +140,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           placement="left"
           onClose={() => setDrawerVisible(false)}
           open={drawerVisible}
-          bodyStyle={{ padding: 0 }}
-          headerStyle={{ display: 'none' }}
+          styles={{
+            body: { padding: 0 },
+            header: { display: 'none' }
+          }}
           width={200}
         >
           <div style={{ background: '#001529', height: '100%' }}>
@@ -156,9 +152,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Drawer>
       ) : (
         // 桌面端固定侧边栏
-        <Sider 
-          trigger={null} 
-          collapsible 
+        <Sider
+          trigger={null}
+          collapsible
           collapsed={collapsed}
           breakpoint="lg"
           onBreakpoint={(broken) => {
@@ -177,10 +173,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {sidebarContent}
         </Sider>
       )}
-      
-      <AntLayout style={{ 
-        marginLeft: isMobile ? 0 : (collapsed ? 80 : 200), 
-        transition: 'margin-left 0.2s' 
+
+      <AntLayout style={{
+        marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
+        transition: 'margin-left 0.2s'
       }}>
         <Header
           style={{
@@ -206,14 +202,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               height: 64,
             }}
           />
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
             {!isMobile && (
               <span style={{ color: '#666', fontSize: isMobile ? 12 : 14 }}>
                 {user?.role?.name === 'admin' ? '管理员' : '经纪人'}: {user?.fullName || user?.username}
               </span>
             )}
-            
+
             <Dropdown
               menu={{
                 items: userMenuItems,
@@ -222,15 +218,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               placement="bottomRight"
               arrow
             >
-              <Avatar 
-                style={{ backgroundColor: '#1890ff', cursor: 'pointer' }} 
+              <Avatar
+                style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
                 icon={<UserOutlined />}
                 size={isMobile ? 'default' : 'large'}
               />
             </Dropdown>
           </div>
         </Header>
-        
+
         <Content
           style={{
             margin: isMobile ? '16px' : '24px',

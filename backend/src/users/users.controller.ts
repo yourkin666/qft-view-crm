@@ -73,10 +73,11 @@ export class UsersController {
     };
   }
 
-  @ApiOperation({ summary: '获取用户统计', description: '获取用户的带看记录统计数据' })
-  @ApiParam({ name: 'id', description: '用户ID', type: 'number' })
-  @ApiResponse({ status: 200, description: '成功获取用户统计' })
-  @Get(':id/statistics')
+  @Get(':id/stats')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '获取用户统计', description: '获取用户的线索记录统计数据' })
+  @ApiResponse({ status: 200, description: '成功获取用户统计数据' })
+  @ApiParam({ name: 'id', description: '用户ID' })
   @Roles('admin')
   async getUserStatistics(@Param('id', ParseIntPipe) id: number) {
     const statistics = await this.usersService.getUserStatistics(id);

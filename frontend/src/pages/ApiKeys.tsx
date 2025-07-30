@@ -52,10 +52,10 @@ const useIsMobile = () => {
     const checkDevice = () => {
       setIsMobile(window.innerWidth < 480);
     };
-    
+
     checkDevice();
     window.addEventListener('resize', checkDevice);
-    
+
     return () => {
       window.removeEventListener('resize', checkDevice);
     };
@@ -67,12 +67,12 @@ const useIsMobile = () => {
 const ApiKeys: React.FC = () => {
   const dispatch = useAppDispatch();
   const isMobile = useIsMobile();
-  const { 
-    apiKeys, 
-    currentApiKey, 
-    loading, 
-    pagination, 
-    statistics 
+  const {
+    apiKeys,
+    currentApiKey,
+    loading,
+    pagination,
+    statistics
   } = useAppSelector((state) => state.apiKeys);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -90,9 +90,9 @@ const ApiKeys: React.FC = () => {
   const handleSave = async (values: CreateApiKeyRequest | UpdateApiKeyRequest) => {
     try {
       if (editingKey) {
-        await dispatch(updateApiKeyAsync({ 
-          id: editingKey.id, 
-          data: values as UpdateApiKeyRequest 
+        await dispatch(updateApiKeyAsync({
+          id: editingKey.id,
+          data: values as UpdateApiKeyRequest
         })).unwrap();
         message.success('更新成功');
       } else {
@@ -183,8 +183,8 @@ const ApiKeys: React.FC = () => {
   const renderMobileFilters = () => (
     <div style={{ padding: '16px' }}>
       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-        <Button 
-          icon={<ReloadOutlined />} 
+        <Button
+          icon={<ReloadOutlined />}
           onClick={() => {
             dispatch(fetchApiKeysAsync());
             dispatch(fetchApiKeyStatisticsAsync());
@@ -193,9 +193,9 @@ const ApiKeys: React.FC = () => {
         >
           刷新
         </Button>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
           onClick={() => openEditModal()}
           style={{ flex: 1, marginLeft: 8 }}
         >
@@ -311,27 +311,27 @@ const ApiKeys: React.FC = () => {
       {/* 移动端顶部操作栏 */}
       {isMobile && (
         <Affix offsetTop={0}>
-          <Card 
-            size="small" 
-            style={{ 
-              marginBottom: 12, 
+          <Card
+            size="small"
+            style={{
+              marginBottom: 12,
               borderRadius: 0,
               borderLeft: 'none',
               borderRight: 'none'
             }}
           >
             <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Button 
+              <Button
                 icon={<FilterOutlined />}
                 onClick={() => setMobileFiltersVisible(true)}
                 size="small"
               >
                 操作
               </Button>
-              <Button 
+              <Button
                 type="primary"
-                size="small" 
-                icon={<PlusOutlined />} 
+                size="small"
+                icon={<PlusOutlined />}
                 onClick={() => openEditModal()}
               >
                 创建密钥
@@ -349,7 +349,7 @@ const ApiKeys: React.FC = () => {
               <Statistic
                 title="总计"
                 value={statistics.total}
-                valueStyle={{ 
+                valueStyle={{
                   color: '#1890ff',
                   fontSize: isMobile ? 16 : 24
                 }}
@@ -361,7 +361,7 @@ const ApiKeys: React.FC = () => {
               <Statistic
                 title="激活中"
                 value={statistics.active}
-                valueStyle={{ 
+                valueStyle={{
                   color: '#52c41a',
                   fontSize: isMobile ? 16 : 24
                 }}
@@ -373,7 +373,7 @@ const ApiKeys: React.FC = () => {
               <Statistic
                 title="已禁用"
                 value={statistics.inactive}
-                valueStyle={{ 
+                valueStyle={{
                   color: '#ff4d4f',
                   fontSize: isMobile ? 16 : 24
                 }}
@@ -386,26 +386,26 @@ const ApiKeys: React.FC = () => {
       {/* 主要内容 */}
       <Card>
         {!isMobile && (
-        <div className="page-toolbar">
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => openEditModal()}
-            >
-              创建API密钥
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                dispatch(fetchApiKeysAsync());
-                dispatch(fetchApiKeyStatisticsAsync());
-              }}
-            >
-              刷新
-            </Button>
-          </Space>
-        </div>
+          <div className="page-toolbar">
+            <Space>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => openEditModal()}
+              >
+                创建API密钥
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  dispatch(fetchApiKeysAsync());
+                  dispatch(fetchApiKeyStatisticsAsync());
+                }}
+              >
+                刷新
+              </Button>
+            </Space>
+          </div>
         )}
 
         {isMobile ? (
@@ -438,10 +438,10 @@ const ApiKeys: React.FC = () => {
                     }}
                   />
                 ))}
-                
+
                 {/* 移动端分页 */}
-                <div style={{ 
-                  textAlign: 'center', 
+                <div style={{
+                  textAlign: 'center',
                   marginTop: 16,
                   padding: '12px 0',
                   borderTop: '1px solid #f0f0f0'
@@ -451,7 +451,7 @@ const ApiKeys: React.FC = () => {
                       第 {((pagination.page - 1) * pagination.pageSize) + 1}-{Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，共 {pagination.total} 条
                     </div>
                     <Space size="small">
-                      <Button 
+                      <Button
                         size="small"
                         disabled={pagination.page <= 1}
                         onClick={() => dispatch(fetchApiKeysAsync({ page: pagination.page - 1, pageSize: pagination.pageSize }))}
@@ -461,7 +461,7 @@ const ApiKeys: React.FC = () => {
                       <span style={{ fontSize: 12, color: '#666' }}>
                         {pagination.page} / {Math.ceil(pagination.total / pagination.pageSize)}
                       </span>
-                      <Button 
+                      <Button
                         size="small"
                         disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
                         onClick={() => dispatch(fetchApiKeysAsync({ page: pagination.page + 1, pageSize: pagination.pageSize }))}
@@ -473,8 +473,8 @@ const ApiKeys: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
+              <div style={{
+                textAlign: 'center',
                 padding: '48px 0',
                 color: '#999'
               }}>
@@ -484,23 +484,23 @@ const ApiKeys: React.FC = () => {
           </div>
         ) : (
           /* 桌面端表格视图 */
-        <Table
-          columns={columns}
-          dataSource={apiKeys}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: pagination.page,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条记录`,
-            onChange: (page, pageSize) => {
-              dispatch(fetchApiKeysAsync({ page, pageSize }));
-            },
-          }}
-        />
+          <Table
+            columns={columns}
+            dataSource={apiKeys}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              current: pagination.page,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条记录`,
+              onChange: (page, pageSize) => {
+                dispatch(fetchApiKeysAsync({ page, pageSize }));
+              },
+            }}
+          />
         )}
       </Card>
 
@@ -516,7 +516,7 @@ const ApiKeys: React.FC = () => {
         afterOpenChange={handleApiKeyModalAfterOpen}
         footer={null}
         width={isMobile ? '90%' : 600}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}
@@ -588,7 +588,7 @@ const ApiKeys: React.FC = () => {
             <Text type="warning" strong>
               ⚠️ 请妥善保存以下信息，API Secret只会显示一次
             </Text>
-            
+
             <div style={{ marginTop: 16 }}>
               <Text strong>渠道名称：</Text>
               <Text>{currentApiKey.channelName}</Text>
@@ -614,11 +614,11 @@ const ApiKeys: React.FC = () => {
               </div>
             )}
 
-            <div style={{ 
-              marginTop: 16, 
-              padding: isMobile ? 12 : 16, 
-              backgroundColor: '#f6f8fa', 
-              borderRadius: 6 
+            <div style={{
+              marginTop: 16,
+              padding: isMobile ? 12 : 16,
+              backgroundColor: '#f6f8fa',
+              borderRadius: 6
             }}>
               <Text strong>使用说明：</Text>
               <br />

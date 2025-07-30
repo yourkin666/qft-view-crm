@@ -43,7 +43,7 @@ const MobileApiKeyCard: React.FC<MobileApiKeyCardProps> = ({
         borderRadius: 8,
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
       }}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
     >
       {/* 头部：状态和ID */}
       <div style={{ 

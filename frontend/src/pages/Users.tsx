@@ -18,11 +18,8 @@ import {
   Select,
   Affix,
   Drawer,
-  message,
-  Checkbox,
   Dropdown,
   MenuProps,
-  DatePicker,
 } from 'antd';
 import {
   PlusOutlined,
@@ -31,14 +28,12 @@ import {
   ReloadOutlined,
   UserOutlined,
   FilterOutlined,
-  SearchOutlined,
-  SettingOutlined,
-  KeyOutlined,
-  ExportOutlined,
   DownOutlined,
   EyeOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
-import type { ColumnsType, TableRowSelection } from 'antd/es/table';
+import type { ColumnsType } from 'antd/es/table';
+import type { TableRowSelection } from 'antd/es/table/interface';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import {
   fetchUsersAsync,
@@ -72,10 +67,10 @@ const useIsMobile = () => {
     const checkDevice = () => {
       setIsMobile(window.innerWidth < 480);
     };
-    
+
     checkDevice();
     window.addEventListener('resize', checkDevice);
-    
+
     return () => {
       window.removeEventListener('resize', checkDevice);
     };
@@ -87,10 +82,10 @@ const useIsMobile = () => {
 const Users: React.FC = () => {
   const dispatch = useAppDispatch();
   const isMobile = useIsMobile();
-  const { 
-    users, 
-    loading, 
-    pagination, 
+  const {
+    users,
+    loading,
+    pagination,
     roles,
     rolesLoading,
     filters,
@@ -168,21 +163,25 @@ const Users: React.FC = () => {
     try {
       if (editingUser) {
         // 编辑用户，包含所有字段
-        await dispatch(updateUserAsync({ 
-          id: editingUser.id, 
-          data: values as UpdateUserRequest 
+        await dispatch(updateUserAsync({
+          id: editingUser.id,
+          data: values as UpdateUserRequest
         })).unwrap();
       } else {
         // 创建用户，过滤掉isActive字段
         const { isActive, ...createData } = values;
         await dispatch(createUserAsync(createData as CreateUserRequest)).unwrap();
       }
+      // 成功后关闭模态框并重置表单
       setModalVisible(false);
       setEditingUser(null);
       form.resetFields();
       loadUsers();
     } catch (error: any) {
-      console.error('Save failed:', error);
+      // 错误信息已经由API拦截器处理并显示
+      // 这里不需要额外的错误处理，只需要记录错误用于调试
+      console.error('Save operation failed:', error);
+      // 不关闭模态框，让用户可以修改后重试
     }
   };
 
@@ -306,10 +305,10 @@ const Users: React.FC = () => {
   // 表格行选择配置
   const rowSelection: TableRowSelection<User> = {
     selectedRowKeys: selectedUserIds,
-    onChange: (selectedRowKeys) => {
+    onChange: (selectedRowKeys: React.Key[]) => {
       dispatch(setSelectedUserIds(selectedRowKeys as number[]));
     },
-    onSelectAll: (selected, selectedRows, changeRows) => {
+    onSelectAll: (selected: boolean, _selectedRows: User[], _changeRows: User[]) => {
       if (selected) {
         const allIds = users.map(user => user.id);
         dispatch(setSelectedUserIds(allIds));
@@ -398,12 +397,13 @@ const Users: React.FC = () => {
               onClick={() => {
                 dispatch(fetchUserStatisticsAsync(record.id)).then((result) => {
                   if (result.payload) {
+                    const stats = result.payload as { viewingRecordsCount: number; apiKeysCount: number };
                     Modal.info({
                       title: `用户统计 - ${record.fullName}`,
                       content: (
                         <div style={{ padding: '16px 0' }}>
-                          <p>带看记录数量: {result.payload.viewingRecordsCount}</p>
-                          <p>API Key数量: {result.payload.apiKeysCount}</p>
+                          <p>线索记录数量: {stats.viewingRecordsCount}</p>
+                          <p>API Key数量: {stats.apiKeysCount}</p>
                         </div>
                       ),
                       width: 400,
@@ -482,15 +482,15 @@ const Users: React.FC = () => {
           <Button onClick={handleClearFilters}>
             清除过滤
           </Button>
-          <Button 
-            icon={<ReloadOutlined />} 
+          <Button
+            icon={<ReloadOutlined />}
             onClick={() => loadUsers()}
           >
             刷新
           </Button>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={() => openEditModal()}
           >
             创建用户
@@ -527,27 +527,27 @@ const Users: React.FC = () => {
       {/* 移动端顶部操作栏 */}
       {isMobile && (
         <Affix offsetTop={0}>
-          <Card 
-            size="small" 
-            style={{ 
-              marginBottom: 12, 
+          <Card
+            size="small"
+            style={{
+              marginBottom: 12,
               borderRadius: 0,
               borderLeft: 'none',
               borderRight: 'none'
             }}
           >
             <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Button 
+              <Button
                 icon={<FilterOutlined />}
                 onClick={() => setMobileFiltersVisible(true)}
                 size="small"
               >
                 操作
               </Button>
-              <Button 
+              <Button
                 type="primary"
-                size="small" 
-                icon={<PlusOutlined />} 
+                size="small"
+                icon={<PlusOutlined />}
                 onClick={() => openEditModal()}
               >
                 创建用户
@@ -564,12 +564,9 @@ const Users: React.FC = () => {
             <Statistic
               title="总用户数"
               value={statistics.total}
-              valueStyle={{ 
+              valueStyle={{
                 color: '#1890ff',
                 fontSize: isMobile ? 20 : 24
-              }}
-              titleStyle={{
-                fontSize: isMobile ? 12 : 14
               }}
               prefix={<UserOutlined />}
             />
@@ -580,12 +577,9 @@ const Users: React.FC = () => {
             <Statistic
               title="激活用户"
               value={statistics.active}
-              valueStyle={{ 
+              valueStyle={{
                 color: '#52c41a',
                 fontSize: isMobile ? 20 : 24
-              }}
-              titleStyle={{
-                fontSize: isMobile ? 12 : 14
               }}
             />
           </Card>
@@ -595,12 +589,9 @@ const Users: React.FC = () => {
             <Statistic
               title="管理员"
               value={statistics.admin}
-              valueStyle={{ 
+              valueStyle={{
                 color: '#ff4d4f',
                 fontSize: isMobile ? 20 : 24
-              }}
-              titleStyle={{
-                fontSize: isMobile ? 12 : 14
               }}
             />
           </Card>
@@ -610,12 +601,9 @@ const Users: React.FC = () => {
             <Statistic
               title="经纪人"
               value={statistics.agent}
-              valueStyle={{ 
+              valueStyle={{
                 color: '#722ed1',
                 fontSize: isMobile ? 20 : 24
-              }}
-              titleStyle={{
-                fontSize: isMobile ? 12 : 14
               }}
             />
           </Card>
@@ -717,12 +705,13 @@ const Users: React.FC = () => {
                       // 显示用户统计信息
                       dispatch(fetchUserStatisticsAsync(id)).then((result) => {
                         if (result.payload) {
+                          const stats = result.payload as { viewingRecordsCount: number; apiKeysCount: number };
                           Modal.info({
                             title: `用户统计 - ${users.find(u => u.id === id)?.fullName}`,
                             content: (
                               <div style={{ padding: '16px 0' }}>
-                                <p>带看记录数量: {result.payload.viewingRecordsCount}</p>
-                                <p>API Key数量: {result.payload.apiKeysCount}</p>
+                                <p>线索记录数量: {stats.viewingRecordsCount}</p>
+                                <p>API Key数量: {stats.apiKeysCount}</p>
                               </div>
                             ),
                             width: 400,
@@ -741,10 +730,10 @@ const Users: React.FC = () => {
                     }}
                   />
                 ))}
-                
+
                 {/* 移动端分页 */}
-                <div style={{ 
-                  textAlign: 'center', 
+                <div style={{
+                  textAlign: 'center',
                   marginTop: 16,
                   padding: '12px 0',
                   borderTop: '1px solid #f0f0f0'
@@ -754,7 +743,7 @@ const Users: React.FC = () => {
                       第 {((pagination.page - 1) * pagination.pageSize) + 1}-{Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，共 {pagination.total} 条
                     </div>
                     <Space size="small">
-                      <Button 
+                      <Button
                         size="small"
                         disabled={pagination.page <= 1}
                         onClick={() => loadUsers({ page: pagination.page - 1, pageSize: pagination.pageSize })}
@@ -764,7 +753,7 @@ const Users: React.FC = () => {
                       <span style={{ fontSize: 12, color: '#666' }}>
                         {pagination.page} / {Math.ceil(pagination.total / pagination.pageSize)}
                       </span>
-                      <Button 
+                      <Button
                         size="small"
                         disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
                         onClick={() => loadUsers({ page: pagination.page + 1, pageSize: pagination.pageSize })}
@@ -776,8 +765,8 @@ const Users: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
+              <div style={{
+                textAlign: 'center',
                 padding: '48px 0',
                 color: '#999'
               }}>
@@ -787,24 +776,24 @@ const Users: React.FC = () => {
           </div>
         ) : (
           /* 桌面端表格视图 */
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          loading={loading}
-          rowSelection={rowSelection}
-          pagination={{
-            current: pagination.page,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条记录`,
-            onChange: (page, pageSize) => {
-              loadUsers({ page, pageSize });
-            },
-          }}
-        />
+          <Table
+            columns={columns}
+            dataSource={users}
+            rowKey="id"
+            loading={loading}
+            rowSelection={rowSelection}
+            pagination={{
+              current: pagination.page,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条记录`,
+              onChange: (page, pageSize) => {
+                loadUsers({ page, pageSize });
+              },
+            }}
+          />
         )}
       </Card>
 
@@ -820,7 +809,7 @@ const Users: React.FC = () => {
         afterOpenChange={handleUserModalAfterOpen}
         footer={null}
         width={isMobile ? '90%' : 600}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}
@@ -864,7 +853,7 @@ const Users: React.FC = () => {
               rules={[
                 { required: true, message: '请输入密码' },
                 { min: 8, message: '密码至少8个字符' },
-                { 
+                {
                   pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
                   message: '密码至少8位，必须包含大小写字母和数字'
                 }
@@ -945,7 +934,7 @@ const Users: React.FC = () => {
         }}
         footer={null}
         width={400}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={batchForm}
@@ -957,13 +946,13 @@ const Users: React.FC = () => {
               <p>确定要激活选中的 {selectedUserIds.length} 个用户吗？</p>
             </div>
           )}
-          
+
           {batchOperation === 'deactivate' && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <p>确定要禁用选中的 {selectedUserIds.length} 个用户吗？</p>
             </div>
           )}
-          
+
           {batchOperation === 'changeRole' && (
             <Form.Item
               label="新角色"
@@ -979,7 +968,7 @@ const Users: React.FC = () => {
               </Select>
             </Form.Item>
           )}
-          
+
           {batchOperation === 'delete' && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <p style={{ color: '#ff4d4f' }}>

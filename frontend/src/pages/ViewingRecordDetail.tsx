@@ -52,14 +52,25 @@ const ViewingRecordDetail: React.FC = () => {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
 
+  // 确保表单实例在组件卸载时被正确清理
+  useEffect(() => {
+    return () => {
+      form.resetFields();
+      editForm.resetFields();
+    };
+  }, [form, editForm]);
+
   useEffect(() => {
     if (id) {
       dispatch(fetchViewingRecordAsync(Number(id)));
     }
     return () => {
       dispatch(clearCurrentRecord());
+      // 清理表单实例
+      form.resetFields();
+      editForm.resetFields();
     };
-  }, [dispatch, id]);
+  }, [dispatch, id, form, editForm]);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -103,40 +114,113 @@ const ViewingRecordDetail: React.FC = () => {
   };
 
   const handleEdit = () => {
-    if (currentRecord) {
-      setEditModalVisible(true);
-    } else {
-      message.error('无法加载记录数据，请刷新页面重试');
+    if (loading) {
+      message.warning('正在加载数据，请稍候...');
+      return;
     }
+
+    if (!currentRecord) {
+      console.error('No currentRecord available for editing');
+      message.error('无法加载记录数据，请刷新页面重试');
+      return;
+    }
+
+    console.log('Opening edit modal with record:', currentRecord);
+
+    // 准备表单数据
+    const formValues = {
+      tenantName: currentRecord.tenantName || '',
+      primaryPhone: currentRecord.primaryPhone || '',
+      primaryWechat: currentRecord.primaryWechat || '',
+      roomAddress: currentRecord.roomAddress || '',
+      propertyName: currentRecord.propertyName || '',
+      businessType: currentRecord.businessType || undefined,
+      viewingStatus: currentRecord.viewingStatus || 'pending',
+      viewingDate: currentRecord.viewingDate ? dayjs(currentRecord.viewingDate) : undefined,
+      remarks: currentRecord.remarks || '',
+      source: currentRecord.source || 'manual',
+    };
+
+    // 设置表单值并打开模态框
+    editForm.setFieldsValue(formValues);
+    console.log('Form values set:', formValues);
+    setEditModalVisible(true);
   };
 
+  // 移除原来的useEffect，因为我们现在在handleEdit中直接设置表单值
+  // useEffect(() => {
+  //   if (editModalVisible && currentRecord) {
+  //     console.log('Setting form values:', currentRecord);
+  //     const formValues = {
+  //       tenantName: currentRecord.tenantName || '',
+  //       primaryPhone: currentRecord.primaryPhone || '',
+  //       primaryWechat: currentRecord.primaryWechat || '',
+  //       roomAddress: currentRecord.roomAddress || '',
+  //       propertyName: currentRecord.propertyName || '',
+  //       businessType: currentRecord.businessType || undefined,
+  //       viewingStatus: currentRecord.viewingStatus || 'pending',
+  //       viewingDate: currentRecord.viewingDate ? dayjs(currentRecord.viewingDate) : undefined,
+  //       remarks: currentRecord.remarks || '',
+  //       source: currentRecord.source || 'manual',
+  //     };
+
+  //     // 使用 setTimeout 确保在下一个事件循环中设置表单值
+  //     setTimeout(() => {
+  //       editForm.setFieldsValue(formValues);
+  //       console.log('Form values set successfully:', formValues);
+  //     }, 100); // 增加延迟时间，确保模态框完全打开
+  //   }
+  // }, [editModalVisible, currentRecord, editForm]);
+
+  // 额外的数据验证
+  useEffect(() => {
+    if (currentRecord) {
+      console.log('Current record updated:', {
+        id: currentRecord.id,
+        tenantName: currentRecord.tenantName,
+        primaryPhone: currentRecord.primaryPhone,
+        viewingStatus: currentRecord.viewingStatus,
+        hasData: !!currentRecord.tenantName
+      });
+    }
+  }, [currentRecord]);
+
   const handleEditModalAfterOpen = (open: boolean) => {
+    // 简化这个方法，只用于调试
     if (open && currentRecord) {
-      // 模态框打开后设置表单值
-      const formValues = {
-        tenantName: currentRecord.tenantName || '',
-        primaryPhone: currentRecord.primaryPhone || '',
-        primaryWechat: currentRecord.primaryWechat || '',
-        roomAddress: currentRecord.roomAddress || '',
-        propertyName: currentRecord.propertyName || '',
-        businessType: currentRecord.businessType || undefined,
-        viewingStatus: currentRecord.viewingStatus || 'pending',
-        viewingDate: currentRecord.viewingDate ? dayjs(currentRecord.viewingDate) : undefined,
-        remarks: currentRecord.remarks || '',
-        source: currentRecord.source || 'manual',
-      };
-      
-      editForm.setFieldsValue(formValues);
+      console.log('Modal opened, currentRecord:', currentRecord);
+      console.log('Edit modal visible:', editModalVisible);
+
+      // 确保表单有数据，如果没有则重新设置
+      const currentFormValues = editForm.getFieldsValue();
+      console.log('Current form values after modal open:', currentFormValues);
+
+      if (!currentFormValues.tenantName && currentRecord.tenantName) {
+        console.log('Form values missing, setting again...');
+        const formValues = {
+          tenantName: currentRecord.tenantName || '',
+          primaryPhone: currentRecord.primaryPhone || '',
+          primaryWechat: currentRecord.primaryWechat || '',
+          roomAddress: currentRecord.roomAddress || '',
+          propertyName: currentRecord.propertyName || '',
+          businessType: currentRecord.businessType || undefined,
+          viewingStatus: currentRecord.viewingStatus || 'pending',
+          viewingDate: currentRecord.viewingDate ? dayjs(currentRecord.viewingDate) : undefined,
+          remarks: currentRecord.remarks || '',
+          source: currentRecord.source || 'manual',
+        };
+        editForm.setFieldsValue(formValues);
+      }
     }
   };
 
   const handleEditSubmit = async (values: any) => {
     setEditLoading(true);
-    
+
     try {
       // 表单验证
       await editForm.validateFields();
-      
+
       const requestData = {
         tenantName: values.tenantName,
         primaryPhone: values.primaryPhone,
@@ -149,14 +233,15 @@ const ViewingRecordDetail: React.FC = () => {
         remarks: values.remarks,
         source: values.source,
       };
-      
+
       await dispatch(updateViewingRecordAsync({
         id: Number(id),
         data: requestData,
       })).unwrap();
-      
+
       message.success('记录更新成功');
       setEditModalVisible(false);
+      editForm.resetFields();
       dispatch(fetchViewingRecordAsync(Number(id)));
     } catch (error: any) {
       console.error('Edit failed:', error);
@@ -189,19 +274,31 @@ const ViewingRecordDetail: React.FC = () => {
     }
   };
 
+  // 渲染加载状态
   if (loading) {
     return (
       <div className="loading-container">
         <Spin size="large" />
+        {/* 隐藏的表单，确保表单实例被正确连接 */}
+        <div style={{ display: 'none' }}>
+          <Form form={form} />
+          <Form form={editForm} />
+        </div>
       </div>
     );
   }
 
+  // 渲染空状态
   if (!currentRecord) {
     return (
       <div className="empty-container">
         <p>记录不存在或已被删除</p>
         <Button onClick={() => navigate('/records')}>返回列表</Button>
+        {/* 隐藏的表单，确保表单实例被正确连接 */}
+        <div style={{ display: 'none' }}>
+          <Form form={form} />
+          <Form form={editForm} />
+        </div>
       </div>
     );
   }
@@ -230,17 +327,18 @@ const ViewingRecordDetail: React.FC = () => {
             返回列表
           </Button>
           <Title level={3} style={{ margin: 0, display: 'inline' }}>
-            带看记录详情
+            线索记录详情
           </Title>
         </div>
-        
+
         <Space>
           <Button
             type="primary"
             icon={<EditOutlined />}
             onClick={handleEdit}
-            disabled={!currentRecord}
+            disabled={!currentRecord || loading}
             loading={loading}
+            title={!currentRecord ? '记录数据加载中...' : '编辑记录'}
           >
             编辑记录
           </Button>
@@ -281,7 +379,7 @@ const ViewingRecordDetail: React.FC = () => {
                   {getStatusText(currentRecord.viewingStatus)}
                 </Tag>
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="租客姓名" span={1}>
                 <Space>
                   <UserOutlined />
@@ -294,7 +392,7 @@ const ViewingRecordDetail: React.FC = () => {
                   {currentRecord.primaryPhone || '-'}
                 </Space>
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="微信号" span={1}>
                 <Space>
                   <WechatOutlined />
@@ -306,36 +404,74 @@ const ViewingRecordDetail: React.FC = () => {
                   <Tag>{businessTypeMap[currentRecord.businessType as keyof typeof businessTypeMap]}</Tag>
                 ) : '-'}
               </Descriptions.Item>
-              
+
+              <Descriptions.Item label="线索来源平台" span={1}>
+                {currentRecord.sourcePlatform ? (
+                  <Tag color="blue">{currentRecord.sourcePlatform}</Tag>
+                ) : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="客户需求房源" span={1}>
+                {currentRecord.customerRoomType ? (
+                  <Tag color="green">{currentRecord.customerRoomType}</Tag>
+                ) : '-'}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="客户来源房源价格" span={1}>
+                {currentRecord.sourcePropertyPrice ?
+                  `¥${currentRecord.sourcePropertyPrice.toLocaleString()}` : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="当前跟进平台" span={1}>
+                {currentRecord.followUpPlatform ? (
+                  <Tag color="purple">{currentRecord.followUpPlatform}</Tag>
+                ) : '-'}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="客户状态" span={1}>
+                {currentRecord.customerStatus ? (
+                  <Tag color={
+                    currentRecord.customerStatus === '接洽中' ? 'orange' :
+                      currentRecord.customerStatus === '已约带看' ? 'blue' :
+                        currentRecord.customerStatus === '客户丢失' ? 'red' : 'default'
+                  }>
+                    {currentRecord.customerStatus}
+                  </Tag>
+                ) : '-'}
+              </Descriptions.Item>
+              {currentRecord.leadViewingStatus && (
+                <Descriptions.Item label="带看状态" span={1}>
+                  <Tag color="cyan">{currentRecord.leadViewingStatus}</Tag>
+                </Descriptions.Item>
+              )}
+
               <Descriptions.Item label="物业名称" span={2}>
                 <Space>
                   <HomeOutlined />
                   {currentRecord.propertyName || '-'}
                 </Space>
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="房间地址" span={2}>
                 {currentRecord.roomAddress || '-'}
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="偏好看房时间" span={2}>
                 <Space>
                   <ClockCircleOutlined />
                   {currentRecord.preferredViewingTime || '-'}
                 </Space>
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="数据来源" span={1}>
                 <Tag>{sourceMap[currentRecord.source as keyof typeof sourceMap] || currentRecord.source}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="创建时间" span={1}>
                 {dayjs(currentRecord.createdAt).format('YYYY-MM-DD HH:mm:ss')}
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="更新时间" span={2}>
                 {dayjs(currentRecord.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
               </Descriptions.Item>
-              
+
               {currentRecord.remarks && (
                 <Descriptions.Item label="备注信息" span={2}>
                   <Text>{currentRecord.remarks}</Text>
@@ -343,6 +479,34 @@ const ViewingRecordDetail: React.FC = () => {
               )}
             </Descriptions>
           </Card>
+
+          {/* 带看信息 */}
+          {(currentRecord.customerStatus === '已约带看' || currentRecord.viewingProperties || currentRecord.customerFeedback) && (
+            <Card title="带看信息" style={{ marginBottom: 24 }}>
+              <Descriptions column={1} bordered>
+                {currentRecord.viewingProperties && (
+                  <Descriptions.Item label="带看房源">
+                    <Text>{currentRecord.viewingProperties}</Text>
+                  </Descriptions.Item>
+                )}
+
+                {currentRecord.viewingDate && (
+                  <Descriptions.Item label="带看日期">
+                    <Space>
+                      <ClockCircleOutlined />
+                      {dayjs(currentRecord.viewingDate).format('YYYY-MM-DD HH:mm')}
+                    </Space>
+                  </Descriptions.Item>
+                )}
+
+                {currentRecord.customerFeedback && (
+                  <Descriptions.Item label="客户反馈">
+                    <Text>{currentRecord.customerFeedback}</Text>
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            </Card>
+          )}
 
           {/* AI相关信息 */}
           {(currentRecord.originalQuery || currentRecord.aiSummary || currentRecord.requirementsJson) && (
@@ -353,18 +517,18 @@ const ViewingRecordDetail: React.FC = () => {
                     <Text>{currentRecord.originalQuery}</Text>
                   </Descriptions.Item>
                 )}
-                
+
                 {currentRecord.aiSummary && (
                   <Descriptions.Item label="AI总结">
                     <Text>{currentRecord.aiSummary}</Text>
                   </Descriptions.Item>
                 )}
-                
+
                 {currentRecord.requirementsJson && (
                   <Descriptions.Item label="需求详情">
-                    <pre style={{ 
-                      background: '#f5f5f5', 
-                      padding: 12, 
+                    <pre style={{
+                      background: '#f5f5f5',
+                      padding: 12,
                       borderRadius: 4,
                       margin: 0,
                       whiteSpace: 'pre-wrap',
@@ -416,14 +580,22 @@ const ViewingRecordDetail: React.FC = () => {
 
       {/* 编辑记录模态框 */}
       <Modal
-        title="编辑带看记录"
+        title="编辑线索记录"
         open={editModalVisible}
         onOk={() => editForm.submit()}
-        onCancel={() => setEditModalVisible(false)}
+        onCancel={() => {
+          console.log('Edit modal cancelled');
+          setEditModalVisible(false);
+          editForm.resetFields();
+        }}
+        afterClose={() => {
+          console.log('Edit modal closed');
+          editForm.resetFields();
+        }}
         afterOpenChange={handleEditModalAfterOpen}
         confirmLoading={editLoading}
         width={800}
-        destroyOnClose
+        destroyOnClose={false}
       >
         <Form
           form={editForm}
@@ -432,7 +604,7 @@ const ViewingRecordDetail: React.FC = () => {
           onFinishFailed={() => {
             message.error('请检查表单填写是否正确');
           }}
-          preserve={false}
+          preserve={true}
         >
           <Row gutter={16}>
             <Col span={12}>
@@ -509,9 +681,9 @@ const ViewingRecordDetail: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item label="带看时间" name="viewingDate">
-                <DatePicker 
+                <DatePicker
                   style={{ width: '100%' }}
-                  showTime 
+                  showTime
                   placeholder="选择带看时间"
                 />
               </Form.Item>
@@ -536,16 +708,19 @@ const ViewingRecordDetail: React.FC = () => {
         title="更新状态"
         open={statusModalVisible}
         onOk={() => form.submit()}
-        onCancel={() => setStatusModalVisible(false)}
-        destroyOnClose
+        onCancel={() => {
+          setStatusModalVisible(false);
+          form.resetFields();
+        }}
+        destroyOnHidden
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleStatusUpdate}
           initialValues={{
-            viewingStatus: currentRecord.viewingStatus,
-            remarks: currentRecord.remarks,
+            viewingStatus: currentRecord?.viewingStatus || 'pending',
+            remarks: currentRecord?.remarks || '',
           }}
         >
           <Form.Item
@@ -560,7 +735,7 @@ const ViewingRecordDetail: React.FC = () => {
               <Select.Option value="cancelled">已取消</Select.Option>
             </Select>
           </Form.Item>
-          
+
           <Form.Item label="备注信息" name="remarks">
             <TextArea rows={3} placeholder="请输入备注信息" />
           </Form.Item>

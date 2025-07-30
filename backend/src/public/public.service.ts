@@ -58,10 +58,10 @@ export class PublicService {
           channel: record.apiKey?.channelName,
           createdAt: record.createdAt,
         },
-        message: '带看记录创建成功',
+        message: '线索记录创建成功',
       };
     } catch (error) {
-      throw new BadRequestException('创建带看记录失败: ' + error.message);
+      throw new BadRequestException('创建线索记录失败: ' + error.message);
     }
   }
 

@@ -1,16 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { 
-  usersService, 
-  CreateUserRequest, 
-  UpdateUserRequest, 
-  Role, 
+import {
+  usersService,
+  CreateUserRequest,
+  UpdateUserRequest,
+  Role,
   UserQueryParams,
   BatchUpdateRequest,
   BatchDeleteRequest
 } from '@/services/users';
-import type { 
-  User, 
-  Pagination 
+import type {
+  User,
+  Pagination
 } from '@/types';
 import { message } from 'antd';
 
@@ -119,7 +119,7 @@ export const resetPasswordAsync = createAsyncThunk(
 export const deleteUserAsync = createAsyncThunk(
   'users/deleteUser',
   async (id: number) => {
-    const response = await usersService.deleteUser(id);
+    await usersService.deleteUser(id);
     return id;
   }
 );
@@ -194,7 +194,7 @@ const usersSlice = createSlice({
       .addCase(fetchUsersAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch users';
-        message.error('获取用户列表失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 获取单个用户详情
@@ -209,7 +209,7 @@ const usersSlice = createSlice({
       .addCase(fetchUserAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch user';
-        message.error('获取用户详情失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 获取用户统计信息
@@ -217,14 +217,14 @@ const usersSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUserStatisticsAsync.fulfilled, (state, action) => {
+      .addCase(fetchUserStatisticsAsync.fulfilled, (state) => {
         state.loading = false;
         // 可以将统计信息存储到当前用户或单独的状态中
       })
       .addCase(fetchUserStatisticsAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch user statistics';
-        message.error('获取用户统计失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 创建用户
@@ -243,7 +243,7 @@ const usersSlice = createSlice({
       .addCase(createUserAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to create user';
-        message.error('创建用户失败');
+        // 移除通用的message.error调用，具体错误已由API拦截器处理
       })
 
       // 更新用户
@@ -267,7 +267,7 @@ const usersSlice = createSlice({
       .addCase(updateUserAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to update user';
-        message.error('更新用户失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 批量更新用户
@@ -283,7 +283,7 @@ const usersSlice = createSlice({
       .addCase(batchUpdateUsersAsync.rejected, (state, action) => {
         state.batchLoading = false;
         state.error = action.error.message || 'Failed to batch update users';
-        message.error('批量更新失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 重置密码
@@ -298,7 +298,7 @@ const usersSlice = createSlice({
       .addCase(resetPasswordAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to reset password';
-        message.error('密码重置失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 删除用户
@@ -317,7 +317,7 @@ const usersSlice = createSlice({
       .addCase(deleteUserAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to delete user';
-        message.error('删除用户失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 批量删除用户
@@ -334,7 +334,7 @@ const usersSlice = createSlice({
       .addCase(batchDeleteUsersAsync.rejected, (state, action) => {
         state.batchLoading = false;
         state.error = action.error.message || 'Failed to batch delete users';
-        message.error('批量删除失败');
+        // 移除message.error调用，由API拦截器处理
       })
 
       // 获取角色列表
@@ -349,18 +349,18 @@ const usersSlice = createSlice({
       .addCase(fetchRolesAsync.rejected, (state, action) => {
         state.rolesLoading = false;
         state.error = action.error.message || 'Failed to fetch roles';
-        message.error('获取角色列表失败');
+        // 移除message.error调用，由API拦截器处理
       });
   },
 });
 
-export const { 
-  clearError, 
-  clearCurrentUser, 
-  setFilters, 
-  clearFilters, 
-  setSelectedUserIds, 
-  clearSelectedUserIds, 
-  resetState 
+export const {
+  clearError,
+  clearCurrentUser,
+  setFilters,
+  clearFilters,
+  setSelectedUserIds,
+  clearSelectedUserIds,
+  resetState
 } = usersSlice.actions;
 export default usersSlice.reducer; 

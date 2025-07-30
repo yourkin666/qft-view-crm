@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -13,14 +13,14 @@ export interface UserQueryParams {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(page: number = 1, pageSize: number = 10, params?: UserQueryParams) {
     const skip = (page - 1) * pageSize;
-    
+
     // 构建查询条件
     const where: any = {};
-    
+
     if (params?.search) {
       where.OR = [
         { username: { contains: params.search } },
@@ -28,11 +28,11 @@ export class UsersService {
         { phone: { contains: params.search } },
       ];
     }
-    
+
     if (params?.roleId !== undefined) {
       where.roleId = params.roleId;
     }
-    
+
     if (params?.isActive !== undefined) {
       where.isActive = params.isActive;
     }
@@ -58,7 +58,7 @@ export class UsersService {
     } else {
       orderBy.createdAt = 'desc';
     }
-    
+
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         skip,
@@ -129,41 +129,85 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    // 检查用户名是否已存在
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username: createUserDto.username },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('用户名已存在');
-    }
-
-    // 检查手机号是否已存在
-    if (createUserDto.phone) {
-      const existingPhone = await this.prisma.user.findUnique({
-        where: { phone: createUserDto.phone },
+    try {
+      // 检查用户名是否已存在
+      const existingUser = await this.prisma.user.findUnique({
+        where: { username: createUserDto.username },
       });
 
-      if (existingPhone) {
-        throw new ConflictException('手机号已存在');
+      if (existingUser) {
+        throw new ConflictException(`用户名 "${createUserDto.username}" 已存在，请选择其他用户名`);
       }
+
+      // 检查手机号是否已存在
+      if (createUserDto.phone) {
+        const existingPhone = await this.prisma.user.findUnique({
+          where: { phone: createUserDto.phone },
+        });
+
+        if (existingPhone) {
+          throw new ConflictException(`手机号 "${createUserDto.phone}" 已被其他用户使用`);
+        }
+      }
+
+      // 检查角色是否存在
+      const role = await this.prisma.role.findUnique({
+        where: { id: createUserDto.roleId },
+      });
+
+      if (!role) {
+        throw new BadRequestException(`指定的角色不存在，请选择有效的角色`);
+      }
+
+      // 加密密码
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+      const user = await this.prisma.user.create({
+        data: {
+          ...createUserDto,
+          password: hashedPassword,
+        },
+        include: {
+          role: true,
+        },
+      });
+
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      // 如果是已知的业务异常，直接抛出
+      if (error instanceof ConflictException || error instanceof BadRequestException) {
+        throw error;
+      }
+
+      // 处理数据库约束错误
+      if (error.code === 'P2002') {
+        const target = error.meta?.target;
+        if (Array.isArray(target)) {
+          if (target.includes('username')) {
+            throw new ConflictException(`用户名 "${createUserDto.username}" 已存在，请选择其他用户名`);
+          }
+          if (target.includes('phone')) {
+            throw new ConflictException(`手机号 "${createUserDto.phone}" 已被其他用户使用`);
+          }
+        }
+        throw new ConflictException('用户信息重复，请检查用户名或手机号');
+      }
+
+      // 处理外键约束错误
+      if (error.code === 'P2003') {
+        throw new BadRequestException('指定的角色不存在，请选择有效的角色');
+      }
+
+      // 处理其他数据库错误
+      if (error.code?.startsWith('P')) {
+        throw new BadRequestException('数据库操作失败，请检查输入数据的有效性');
+      }
+
+      // 记录未知错误
+      console.error('创建用户时发生未知错误:', error);
+      throw new InternalServerErrorException('创建用户失败，请稍后重试或联系管理员');
     }
-
-    // 加密密码
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-    const user = await this.prisma.user.create({
-      data: {
-        ...createUserDto,
-        password: hashedPassword,
-      },
-      include: {
-        role: true,
-      },
-    });
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -237,7 +281,7 @@ export class UsersService {
         },
       });
 
-      return { 
+      return {
         message: `成功更新 ${result.count} 个用户`,
         updatedCount: result.count,
       };
@@ -256,7 +300,7 @@ export class UsersService {
       data: { password: hashedPassword },
     });
 
-    return { 
+    return {
       message: '密码重置成功',
       tempPassword,
     };
@@ -274,13 +318,13 @@ export class UsersService {
         throw new NotFoundException('部分用户不存在');
       }
 
-      // 检查是否有关联的带看记录
-      const relatedRecords = await tx.viewingRecord.count({
-        where: { agentId: { in: ids } },
-      });
+      // 检查是否有关联的房源（目前系统中没有房源表，跳过此检查）
+      // 如果将来添加房源表，可以在此处添加相关检查
 
+      // 检查是否有关联的线索记录
+      const relatedRecords = await tx.viewingRecord.count({ where: { agentId: { in: ids } } });
       if (relatedRecords > 0) {
-        throw new BadRequestException(`无法删除用户，存在 ${relatedRecords} 条关联的带看记录`);
+        throw new BadRequestException(`无法删除用户，存在 ${relatedRecords} 条关联的线索记录`);
       }
 
       // 执行批量删除
@@ -288,7 +332,7 @@ export class UsersService {
         where: { id: { in: ids } },
       });
 
-      return { 
+      return {
         message: `成功删除 ${result.count} 个用户`,
         deletedCount: result.count,
       };

@@ -67,41 +67,59 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
 
   const statusColor = useMemo(() => getStatusColor(record.viewingStatus), [record.viewingStatus, getStatusColor]);
   const statusText = useMemo(() => getStatusText(record.viewingStatus), [record.viewingStatus, getStatusText]);
-  const businessTypeText = useMemo(() => 
-    record.businessType ? getBusinessTypeText(record.businessType) : null, 
+  const businessTypeText = useMemo(() =>
+    record.businessType ? getBusinessTypeText(record.businessType) : null,
     [record.businessType, getBusinessTypeText]
   );
 
   return (
     <Card
       size="small"
-      style={{ 
+      style={{
         marginBottom: 12,
         border: '1px solid #f0f0f0',
         borderRadius: 8,
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
       }}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
     >
       {/* 头部：状态和业务类型 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 8
       }}>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        <Tag color={statusColor}>
-          {statusText}
-        </Tag>
-          {businessTypeText && (
-        <Tag color="geekblue">
-          {businessTypeText}
-        </Tag>
+          {/* 客户状态 */}
+          {record.customerStatus && (
+            <Tag color={
+              record.customerStatus === '接洽中' ? 'orange' :
+                record.customerStatus === '已约带看' ? 'blue' :
+                  record.customerStatus === '客户丢失' ? 'red' : 'default'
+            }>
+              {record.customerStatus}
+            </Tag>
           )}
-          <Tag color={record.channelType === 'API' ? 'blue' : 'green'} style={{ fontSize: 10 }}>
-            {record.channel || '手动录入'}
+
+          {/* 系统状态 */}
+          <Tag color={statusColor} style={{ fontSize: 10 }}>
+            系统:{statusText}
           </Tag>
+
+          {/* 业务类型 */}
+          {businessTypeText && (
+            <Tag color="geekblue" style={{ fontSize: 10 }}>
+              {businessTypeText}
+            </Tag>
+          )}
+
+          {/* 房源类型 */}
+          {record.customerRoomType && (
+            <Tag color="green" style={{ fontSize: 10 }}>
+              {record.customerRoomType}
+            </Tag>
+          )}
         </div>
       </div>
 
@@ -113,9 +131,16 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
             {record.roomAddress}
           </Text>
         </div>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {record.propertyName}
-        </Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {record.propertyName}
+          </Text>
+          {record.sourcePropertyPrice && (
+            <Text style={{ fontSize: 12, color: '#fa8c16', fontWeight: 500 }}>
+              ¥{record.sourcePropertyPrice.toLocaleString()}
+            </Text>
+          )}
+        </div>
       </div>
 
       {/* 客户信息 */}
@@ -133,6 +158,29 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
           </Text>
         </div>
       </div>
+
+      {/* 平台信息 */}
+      {(record.sourcePlatform || record.followUpPlatform) && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, fontSize: 11 }}>
+            {record.sourcePlatform && (
+              <Text type="secondary">
+                来源: {record.sourcePlatform}
+              </Text>
+            )}
+            {record.followUpPlatform && (
+              <Text type="secondary">
+                跟进: {record.followUpPlatform}
+              </Text>
+            )}
+          </div>
+          {record.leadViewingStatus && (
+            <Text style={{ fontSize: 11, color: '#1890ff' }}>
+              {record.leadViewingStatus}
+            </Text>
+          )}
+        </div>
+      )}
 
       {/* 时间信息 */}
       <div style={{ marginBottom: showActions ? 8 : 0 }}>
@@ -155,10 +203,10 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
       {/* 备注 */}
       {record.remarks && (
         <div style={{ marginBottom: showActions ? 8 : 0 }}>
-          <Paragraph 
+          <Paragraph
             ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
-            style={{ 
-              fontSize: 12, 
+            style={{
+              fontSize: 12,
               color: '#666',
               margin: 0,
               lineHeight: '16px'
@@ -171,30 +219,30 @@ const MobileRecordCard: React.FC<MobileRecordCardProps> = memo(({
 
       {/* 操作按钮 */}
       {showActions && (
-        <div style={{ 
+        <div style={{
           borderTop: '1px solid #f0f0f0',
           paddingTop: 8,
           marginTop: 8
         }}>
           <Space size="small" style={{ width: '100%', justifyContent: 'center' }}>
-            <Button 
-              type="text" 
+            <Button
+              type="text"
               size="small"
               icon={<EyeOutlined />}
               onClick={handleView}
             >
               查看
             </Button>
-            <Button 
-              type="text" 
+            <Button
+              type="text"
               size="small"
               icon={<EditOutlined />}
               onClick={handleEdit}
             >
               编辑
             </Button>
-            <Button 
-              type="text" 
+            <Button
+              type="text"
               size="small"
               danger
               icon={<DeleteOutlined />}

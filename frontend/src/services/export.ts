@@ -1,56 +1,30 @@
 import api from './api';
+import { ExportParams } from '../types';
 
-export interface ExportParams {
-  status?: string;
-  agentId?: number;
-  source?: string;
-  businessType?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  format: 'excel' | 'pdf';
-}
+export type { ExportParams };
 
-export const exportService = {
-  // 导出带看记录
-  async exportViewingRecords(params: ExportParams) {
-    const queryParams = new URLSearchParams();
-    
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        queryParams.append(key, value.toString());
-      }
-    });
+// 导出线索记录
+export const exportDataAPI = async (params: ExportParams) => {
+  const response = await api.get('/export', {
+    params,
+    responseType: 'blob',
+  });
 
-    const response = await api.get(`/export/viewing-records?${queryParams.toString()}`, {
-      responseType: 'blob',
-    });
-
-    // 从响应头获取文件名
-    const contentDisposition = response.headers['content-disposition'];
-    let filename = `带看记录_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-      if (filenameMatch) {
-        filename = decodeURIComponent(filenameMatch[1].replace(/['"]/g, ''));
-      }
+  const blob = new Blob([response.data], { type: response.headers['content-type'] });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  let filename = `线索记录_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const contentDisposition = response.headers['content-disposition'];
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+    if (filenameMatch.length > 1) {
+      filename = filenameMatch[1];
     }
-
-    // 创建下载链接
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    
-    // 清理
-    link.remove();
-    window.URL.revokeObjectURL(url);
-
-    return {
-      success: true,
-      message: '导出成功',
-    };
-  },
-}; 
+  }
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

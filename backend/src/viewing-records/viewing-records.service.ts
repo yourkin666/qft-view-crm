@@ -6,43 +6,26 @@ import { QueryViewingRecordsDto } from './dto/query-viewing-records.dto';
 
 @Injectable()
 export class ViewingRecordsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async findAll(query: QueryViewingRecordsDto, user: any) {
-    const { 
-      page = 1, 
-      pageSize = 10, 
-      status, 
-      agentId, 
-      source, 
-      search,
-      businessType,
-    } = query;
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
+    viewingStatus?: string,
+    // sourcePlatform?: string,
+    user?: any,
+  ) {
+    const skip = (page - 1) * limit;
+    const where: any = {
+      deletedAt: null,
+    };
 
-    const skip = (page - 1) * pageSize;
-    
-    // 构建查询条件
-    const where: any = {};
-
-    // 权限控制：经纪人只能看自己的记录
-    if (user.role.name === 'agent') {
+    // 权限控制：经纪人只能查看自己的记录
+    if (user && user.role.name === 'agent') {
       where.agentId = user.id;
-    } else if (agentId) {
-      // 管理员可以指定查看某个经纪人的记录
-      where.agentId = agentId;
-    }
-
-    // 筛选条件
-    if (status) {
-      where.viewingStatus = status;
-    }
-
-    if (source) {
-      where.source = source;
-    }
-
-    if (businessType) {
-      where.businessType = businessType;
     }
 
     // 搜索条件
@@ -50,16 +33,37 @@ export class ViewingRecordsService {
       where.OR = [
         { tenantName: { contains: search } },
         { primaryPhone: { contains: search } },
+        { agentName: { contains: search } },
         { propertyName: { contains: search } },
         { roomAddress: { contains: search } },
-        { agentName: { contains: search } },
       ];
     }
+
+    // 时间范围过滤
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.createdAt.lte = new Date(endDate);
+      }
+    }
+
+    // 状态过滤
+    if (viewingStatus) {
+      where.viewingStatus = viewingStatus;
+    }
+
+    // 线索来源平台过滤 - 暂时注释
+    // if (sourcePlatform) {
+    //   where.sourcePlatform = sourcePlatform;
+    // }
 
     const [records, total] = await Promise.all([
       this.prisma.viewingRecord.findMany({
         skip,
-        take: pageSize,
+        take: limit,
         where,
         include: {
           agent: {
@@ -96,9 +100,9 @@ export class ViewingRecordsService {
       data: processedRecords,
       pagination: {
         page,
-        pageSize,
+        pageSize: limit,
         total,
-        totalPages: Math.ceil(total / pageSize),
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -126,12 +130,12 @@ export class ViewingRecordsService {
     });
 
     if (!record) {
-      throw new NotFoundException(`带看记录 ID ${id} 不存在`);
+      throw new NotFoundException(`线索记录 ID ${id} 不存在`);
     }
 
     // 权限控制：经纪人只能查看自己的记录
     if (user.role.name === 'agent' && record.agentId !== user.id) {
-      throw new ForbiddenException('您只能查看自己的带看记录');
+      throw new ForbiddenException('您只能查看自己的线索记录');
     }
 
     // 添加渠道信息
@@ -143,38 +147,34 @@ export class ViewingRecordsService {
   }
 
   async create(createViewingRecordDto: CreateViewingRecordDto, user: any) {
-    const data: any = { ...createViewingRecordDto };
+    try {
+      console.log('输入数据:', createViewingRecordDto);
+      console.log('用户信息:', user);
 
-    // 处理日期字段转换
-    if (data.viewingDate && typeof data.viewingDate === 'string') {
-      const parsedDate = new Date(data.viewingDate);
-      if (isNaN(parsedDate.getTime())) {
-        throw new BadRequestException('无效的日期格式');
-      }
-      data.viewingDate = parsedDate;
-    }
-
-    // 如果是经纪人创建，自动设置为当前用户
-    if (user.role.name === 'agent') {
-      data.agentId = user.id;
-      data.agentName = user.fullName || user.username;
-      data.agentPhone = user.phone;
-    }
-
-    return this.prisma.viewingRecord.create({
-      data,
-      include: {
-        agent: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-            phone: true,
-          },
+      // 只使用基础字段创建记录
+      const record = await this.prisma.viewingRecord.create({
+        data: {
+          tenantName: createViewingRecordDto.tenantName || '新客户',
+          primaryPhone: createViewingRecordDto.primaryPhone,
+          primaryWechat: createViewingRecordDto.primaryWechat,
+          businessType: createViewingRecordDto.businessType,
+          propertyName: createViewingRecordDto.propertyName,
+          roomAddress: createViewingRecordDto.roomAddress,
+          preferredViewingTime: createViewingRecordDto.preferredViewingTime,
+          viewingStatus: 'pending',
+          source: 'manual',
+          agentId: user.id,
+          agentName: user.fullName || user.username,
+          remarks: createViewingRecordDto.remarks,
         },
-        property: true,
-      },
-    });
+      });
+
+      console.log('创建成功:', record);
+      return record;
+    } catch (error) {
+      console.error('创建记录错误详情:', error);
+      throw new BadRequestException('创建记录失败: ' + error.message);
+    }
   }
 
   async update(id: number, updateViewingRecordDto: UpdateViewingRecordDto, user: any) {
@@ -182,7 +182,7 @@ export class ViewingRecordsService {
 
     // 权限控制：经纪人只能更新自己的记录
     if (user.role.name === 'agent' && existingRecord.agentId !== user.id) {
-      throw new ForbiddenException('您只能修改自己的带看记录');
+      throw new ForbiddenException('您只能修改自己的线索记录');
     }
 
     const data: any = { ...updateViewingRecordDto };
@@ -194,6 +194,26 @@ export class ViewingRecordsService {
         throw new BadRequestException('无效的日期格式');
       }
       data.viewingDate = parsedDate;
+    }
+
+    // 业务逻辑验证：状态流转检查
+    const oldStatus = (existingRecord as any).customerStatus;
+    const newStatus = data.customerStatus;
+
+    // 如果客户状态改为"已约带看"，验证带看信息
+    if (newStatus === '已约带看' && oldStatus !== '已约带看') {
+      if (!data.leadViewingStatus) {
+        throw new BadRequestException('客户状态变更为"已约带看"时，带看状态为必填项');
+      }
+      if (!data.agentId && !existingRecord.agentId && !data.agentName && !existingRecord.agentName) {
+        throw new BadRequestException('客户状态变更为"已约带看"时，必须指定带看人');
+      }
+    }
+
+    // 如果已经是"已约带看"状态，更新时也要检查带看信息
+    if ((newStatus === '已约带看' || (!newStatus && oldStatus === '已约带看'))
+      && data.hasOwnProperty('leadViewingStatus') && !data.leadViewingStatus) {
+      throw new BadRequestException('客户状态为"已约带看"时，带看状态不能为空');
     }
 
     return this.prisma.viewingRecord.update({
@@ -218,14 +238,14 @@ export class ViewingRecordsService {
 
     // 权限控制：只有管理员能删除记录
     if (user.role.name !== 'admin') {
-      throw new ForbiddenException('只有管理员才能删除带看记录');
+      throw new ForbiddenException('只有管理员才能删除线索记录');
     }
 
     await this.prisma.viewingRecord.delete({
       where: { id },
     });
 
-    return { message: '带看记录删除成功' };
+    return { message: '线索记录删除成功' };
   }
 
   // 统计相关方法
@@ -254,12 +274,10 @@ export class ViewingRecordsService {
 
     return {
       total,
-      byStatus: {
-        pending,
-        confirmed,
-        completed,
-        cancelled,
-      },
+      pending,
+      confirmed,
+      completed,
+      cancelled,
     };
   }
 
@@ -288,11 +306,11 @@ export class ViewingRecordsService {
 
     // 统计各渠道数据
     const channelStats = new Map();
-    
+
     records.forEach(record => {
       const channelName = record.apiKey?.channelName || '手动录入';
       const channelType = record.source === 'api' ? 'API' : '手动';
-      
+
       if (!channelStats.has(channelName)) {
         channelStats.set(channelName, {
           channelName,
@@ -304,7 +322,7 @@ export class ViewingRecordsService {
           cancelled: 0,
         });
       }
-      
+
       const stats = channelStats.get(channelName);
       stats.total += 1;
       stats[record.viewingStatus] += 1;

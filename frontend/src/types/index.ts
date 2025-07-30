@@ -33,7 +33,13 @@ export interface LoginResponse {
   };
 }
 
-// 带看记录相关类型
+// 新增：平台枚举类型
+export type SourcePlatform = '企业微信' | '个人微信' | '小红书' | '闲鱼' | '抖音' | '视频号' | '贝壳' | '58同城';
+export type CustomerRoomType = '单间' | '两房' | '三房';
+export type CustomerStatus = '接洽中' | '已约带看' | '客户丢失';
+export type LeadViewingStatus = '一次带看' | '二次带看' | '三次带看';
+
+// 线索记录相关类型
 export interface ViewingRecord {
   id: number;
   tenantName?: string;
@@ -58,6 +64,19 @@ export interface ViewingRecord {
   channel?: string;
   channelType?: 'API' | 'MANUAL';
   remarks?: string;
+  
+  // 新增字段 - 基础信息
+  sourcePlatform?: SourcePlatform;
+  customerRoomType?: CustomerRoomType;
+  sourcePropertyPrice?: number;
+  followUpPlatform?: SourcePlatform;
+  customerStatus?: CustomerStatus;
+  
+  // 新增字段 - 带看信息
+  leadViewingStatus?: LeadViewingStatus;
+  viewingProperties?: string;
+  customerFeedback?: string;
+  
   createdAt: string;
   updatedAt: string;
   agent?: {
@@ -94,6 +113,18 @@ export interface CreateViewingRecordRequest {
   agentPhone?: string;
   source?: string;
   remarks?: string;
+  
+  // 新增字段 - 基础信息
+  sourcePlatform?: SourcePlatform;
+  customerRoomType?: CustomerRoomType;
+  sourcePropertyPrice?: number;
+  followUpPlatform?: SourcePlatform;
+  customerStatus?: CustomerStatus;
+  
+  // 新增字段 - 带看信息
+  leadViewingStatus?: LeadViewingStatus;
+  viewingProperties?: string;
+  customerFeedback?: string;
 }
 
 export interface QueryViewingRecordsParams {
@@ -104,6 +135,12 @@ export interface QueryViewingRecordsParams {
   source?: string;
   search?: string;
   businessType?: 'focus' | 'joint' | 'whole';
+  
+  // 新增查询字段
+  sourcePlatform?: SourcePlatform;
+  customerRoomType?: CustomerRoomType;
+  customerStatus?: CustomerStatus;
+  followUpPlatform?: SourcePlatform;
 }
 
 // 分页相关类型
@@ -216,4 +253,19 @@ export interface BatchUpdateRequest {
   ids: number[];
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   remarks?: string;
+}
+
+// 导出相关类型
+export interface ExportParams {
+  format?: 'excel' | 'pdf';
+  status?: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  agentId?: number;
+  source?: string;
+  businessType?: 'focus' | 'joint' | 'whole';
+  dateFrom?: string;
+  dateTo?: string;
+  sourcePlatform?: SourcePlatform;
+  customerRoomType?: CustomerRoomType;
+  customerStatus?: CustomerStatus;
+  followUpPlatform?: SourcePlatform;
 } 

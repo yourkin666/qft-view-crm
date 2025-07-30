@@ -82,7 +82,7 @@ export class ExportService {
 
   private async generateExcel(records: any[]) {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('带看记录');
+    const worksheet = workbook.addWorksheet('线索记录');
 
     // 设置表头
     const headers = [
@@ -207,7 +207,7 @@ export class ExportService {
     
     return {
       buffer,
-      filename: `带看记录_${this.formatDate(new Date(), 'YYYYMMDD_HHmmss')}.xlsx`,
+      filename: `线索记录_${this.formatDate(new Date(), 'YYYYMMDD_HHmmss')}.xlsx`,
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     };
   }

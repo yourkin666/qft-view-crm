@@ -3,13 +3,21 @@ import { Type, Transform } from 'class-transformer';
 
 export class QueryApiKeysDto {
   @IsOptional()
-  @Transform(({ value }) => value ? parseInt(value) : 1)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return 1;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 1 : parsed;
+  })
   @IsInt({ message: '页码必须是整数' })
   @Min(1, { message: '页码最小为1' })
   page?: number = 1;
 
   @IsOptional()
-  @Transform(({ value }) => value ? parseInt(value) : 10)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return 10;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 10 : parsed;
+  })
   @IsInt({ message: '每页数量必须是整数' })
   @Min(1, { message: '每页数量最小为1' })
   @Max(100, { message: '每页数量最大为100' })

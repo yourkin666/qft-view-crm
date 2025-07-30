@@ -1,4 +1,4 @@
-describe('带看记录管理测试', () => {
+describe('线索记录管理测试', () => {
   beforeEach(() => {
     // 登录
     cy.visit('/login')
@@ -7,19 +7,19 @@ describe('带看记录管理测试', () => {
     cy.get('button[type="submit"]').click()
     cy.url().should('include', '/dashboard')
     
-    // 导航到带看记录页面
-    cy.contains('带看记录').click()
+    // 导航到线索记录页面
+    cy.contains('线索记录').click()
     cy.url().should('include', '/records')
   })
 
-  it('应该显示带看记录列表页面', () => {
-    cy.contains('带看记录管理')
+  it('应该显示线索记录列表页面', () => {
+    cy.contains('线索记录管理')
     cy.get('[data-testid="create-record-btn"]').should('contain', '新增记录')
     cy.get('[data-testid="export-btn"]').should('contain', '导出')
     cy.get('[data-testid="refresh-btn"]').should('contain', '刷新')
   })
 
-  it('应该能够创建新的带看记录', () => {
+  it('应该能够创建新的线索记录', () => {
     cy.get('[data-testid="create-record-btn"]').click()
     
     // 填写表单
@@ -137,7 +137,7 @@ describe('带看记录管理测试', () => {
   })
 })
 
-describe('移动端带看记录测试', () => {
+describe('移动端线索记录测试', () => {
   beforeEach(() => {
     // 设置移动端视窗
     cy.viewport(375, 812)
@@ -149,8 +149,8 @@ describe('移动端带看记录测试', () => {
     cy.get('button[type="submit"]').click()
     cy.url().should('include', '/dashboard')
     
-    // 导航到带看记录页面
-    cy.contains('带看记录').click()
+    // 导航到线索记录页面
+    cy.contains('线索记录').click()
     cy.url().should('include', '/records')
   })
 

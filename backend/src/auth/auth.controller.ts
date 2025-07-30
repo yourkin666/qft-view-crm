@@ -11,6 +11,28 @@ import { LoginDto } from './dto/login.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  // 临时测试登录端点，绕过Guard
+  @Post('test-login')
+  async testLogin(@Body() loginDto: LoginDto) {
+    try {
+      const user = await this.authService.validateUser(loginDto.username, loginDto.password);
+      if (!user) {
+        return { success: false, message: '用户名或密码错误' };
+      }
+      const loginResult = await this.authService.login(user);
+      return {
+        success: true,
+        data: loginResult,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+        error: error.stack,
+      };
+    }
+  }
+
   @ApiOperation({ summary: '用户登录', description: '使用用户名和密码进行登录认证' })
   @ApiResponse({ status: 200, description: '登录成功，返回JWT令牌' })
   @ApiResponse({ status: 401, description: '用户名或密码错误' })

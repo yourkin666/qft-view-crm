@@ -47,7 +47,7 @@ async function bootstrap() {
       .setVersion('1.0')
       .addTag('auth', '认证相关接口')
       .addTag('users', '用户管理接口')
-      .addTag('viewing-records', '带看记录接口')
+      .addTag('viewing-records', '线索记录接口')
       .addTag('api-keys', 'API密钥管理接口')
       .addTag('export', '数据导出接口')
       .addTag('public', '公共API接口')
@@ -72,11 +72,11 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document, {
+    SwaggerModule.setup('api-docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
         tagsSorter: 'alpha',
-        operationsSorter: 'method',
+        operationsSorter: 'alpha',
       },
       customSiteTitle: '房源带看CRM - API文档',
       customfavIcon: 'https://nestjs.com/img/logo-small.svg',

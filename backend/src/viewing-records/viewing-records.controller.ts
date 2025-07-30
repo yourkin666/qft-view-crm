@@ -36,21 +36,32 @@ import { Roles } from '../common/decorators/roles.decorator';
 export class ViewingRecordsController {
   constructor(private readonly viewingRecordsService: ViewingRecordsService) {}
 
-  @ApiOperation({ summary: '获取带看记录列表', description: '分页获取带看记录，支持筛选和搜索' })
-  @ApiResponse({ status: 200, description: '成功获取带看记录列表' })
+  @ApiOperation({ summary: '获取线索记录列表', description: '分页获取线索记录，支持筛选和搜索' })
+  @ApiResponse({ status: 200, description: '成功获取线索记录列表' })
   @ApiResponse({ status: 401, description: '未授权访问' })
   @ApiResponse({ status: 403, description: '权限不足' })
   @Get()
   @Roles('admin', 'agent')
   async findAll(@Query() query: QueryViewingRecordsDto, @Request() req) {
-    const result = await this.viewingRecordsService.findAll(query, req.user);
+    // 提取基础查询参数
+    const { page, pageSize, search, status } = query;
+    
+    const result = await this.viewingRecordsService.findAll(
+      page || 1,
+      pageSize || 10,
+      search,
+      undefined, // startDate
+      undefined, // endDate  
+      status,
+      req.user
+    );
     return {
       success: true,
       data: result,
     };
   }
 
-  @ApiOperation({ summary: '获取带看记录统计', description: '获取按状态分组的带看记录统计数据' })
+  @ApiOperation({ summary: '获取线索记录统计', description: '获取按状态分组的线索记录统计数据' })
   @ApiResponse({ status: 200, description: '成功获取统计数据' })
   @Get('statistics')
   @Roles('admin', 'agent')
@@ -62,7 +73,7 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '获取渠道统计', description: '获取各渠道的带看记录统计数据' })
+  @ApiOperation({ summary: '获取渠道统计', description: '获取各渠道的线索记录统计数据' })
   @ApiResponse({ status: 200, description: '成功获取渠道统计数据' })
   @Get('channel-statistics')
   @Roles('admin', 'agent')
@@ -74,7 +85,7 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '批量更新带看记录状态', description: '批量更新多条带看记录的状态和备注' })
+  @ApiOperation({ summary: '批量更新线索记录状态', description: '批量更新多条线索记录的状态和备注' })
   @ApiResponse({ status: 200, description: '批量更新成功' })
   @ApiBody({ type: BatchUpdateStatusDto })
   @Patch('batch-update')
@@ -93,10 +104,10 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '获取单条带看记录', description: '根据ID获取带看记录详情' })
+  @ApiOperation({ summary: '获取单条线索记录', description: '根据ID获取线索记录详情' })
   @ApiResponse({ status: 200, description: '成功获取记录详情' })
   @ApiResponse({ status: 404, description: '记录不存在' })
-  @ApiParam({ name: 'id', description: '带看记录ID', type: 'number' })
+  @ApiParam({ name: 'id', description: '线索记录ID', type: 'number' })
   @Get(':id')
   @Roles('admin', 'agent')
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
@@ -107,7 +118,7 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '创建带看记录', description: '创建新的带看记录' })
+  @ApiOperation({ summary: '创建线索记录', description: '创建新的线索记录' })
   @ApiResponse({ status: 201, description: '创建成功' })
   @ApiResponse({ status: 400, description: '参数错误' })
   @ApiBody({ type: CreateViewingRecordDto })
@@ -121,10 +132,10 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '更新带看记录', description: '更新指定的带看记录信息' })
+  @ApiOperation({ summary: '更新线索记录', description: '更新指定的线索记录信息' })
   @ApiResponse({ status: 200, description: '更新成功' })
   @ApiResponse({ status: 404, description: '记录不存在' })
-  @ApiParam({ name: 'id', description: '带看记录ID', type: 'number' })
+  @ApiParam({ name: 'id', description: '线索记录ID', type: 'number' })
   @ApiBody({ type: UpdateViewingRecordDto })
   @Patch(':id')
   @Roles('admin', 'agent')
@@ -140,10 +151,10 @@ export class ViewingRecordsController {
     };
   }
 
-  @ApiOperation({ summary: '删除带看记录', description: '删除指定的带看记录（仅管理员）' })
+  @ApiOperation({ summary: '删除线索记录', description: '删除指定的线索记录（仅管理员）' })
   @ApiResponse({ status: 200, description: '删除成功' })
   @ApiResponse({ status: 404, description: '记录不存在' })
-  @ApiParam({ name: 'id', description: '带看记录ID', type: 'number' })
+  @ApiParam({ name: 'id', description: '线索记录ID', type: 'number' })
   @Delete(':id')
   @Roles('admin')
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {

@@ -15,7 +15,7 @@ const Login: React.FC = () => {
   const [form] = Form.useForm();
 
   // 获取重定向地址
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as any)?.from?.pathname || '/records';
 
   useEffect(() => {
     // 清除之前的错误信息

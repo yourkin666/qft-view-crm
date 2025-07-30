@@ -35,8 +35,14 @@ api.interceptors.response.use(
 
     if (error.response) {
       const { status, data } = error.response;
-      
+
       switch (status) {
+        case 400:
+          // 处理BadRequestException - 显示具体的错误信息
+          const badRequestMessage = data?.message || '请求参数错误';
+          message.error(badRequestMessage);
+          break;
+
         case 401:
           // 未授权，清除token并跳转到登录页
           localStorage.removeItem('access_token');
@@ -44,21 +50,40 @@ api.interceptors.response.use(
           window.location.href = '/login';
           message.error('登录已过期，请重新登录');
           break;
-          
+
         case 403:
           message.error('权限不足');
           break;
-          
+
         case 404:
           message.error('请求的资源不存在');
           break;
-          
-        case 500:
-          message.error('服务器内部错误');
+
+        case 409:
+          // 处理ConflictException - 显示具体的冲突信息
+          const conflictMessage = data?.message || '数据冲突';
+          message.error(conflictMessage);
           break;
-          
+
+        case 422:
+          // 处理UnprocessableEntityException - 数据验证错误
+          if (data?.message && Array.isArray(data.message)) {
+            // 如果是数组，显示第一个错误
+            message.error(data.message[0]);
+          } else {
+            const validationMessage = data?.message || '数据验证失败';
+            message.error(validationMessage);
+          }
+          break;
+
+        case 500:
+          const serverErrorMessage = data?.message || '服务器内部错误';
+          message.error(serverErrorMessage);
+          break;
+
         default:
-          const errorMessage = data?.error?.message || data?.message || '请求失败';
+          // 优先显示后端返回的具体错误信息
+          const errorMessage = data?.message || data?.error?.message || '请求失败';
           message.error(errorMessage);
       }
     } else if (error.request) {

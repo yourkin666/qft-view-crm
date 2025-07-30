@@ -45,7 +45,7 @@ const initialState: ViewingRecordsState = {
   },
 };
 
-// 获取带看记录列表
+// 获取线索记录列表
 export const fetchViewingRecordsAsync = createAsyncThunk(
   'viewingRecords/fetchRecords',
   async (params: QueryViewingRecordsParams = {}, { rejectWithValue }) => {

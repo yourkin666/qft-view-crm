@@ -12,13 +12,18 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: '0.0.0.0',
     proxy: {
       '/api/': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
       },
     },
+  },
+  preview: {
+    port: 4173,
+    host: '0.0.0.0',
   },
   build: {
     outDir: 'dist',
@@ -28,71 +33,24 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
+        manualChunks: {
           // React核心库
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor';
-          }
-          
+          react: ['react', 'react-dom'],
           // Redux相关
-          if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) {
-            return 'redux';
-          }
-          
+          redux: ['@reduxjs/toolkit', 'react-redux'],
           // 路由
-          if (id.includes('react-router')) {
-            return 'router';
-          }
-          
-          // Ant Design按组件分组
-          if (id.includes('antd/es/')) {
-            // 基础组件
-            if (id.includes('/button/') || id.includes('/input/') || id.includes('/select/') || 
-                id.includes('/form/') || id.includes('/card/') || id.includes('/space/')) {
-              return 'antd-basic';
-            }
-            // 表格和列表
-            if (id.includes('/table/') || id.includes('/list/')) {
-              return 'antd-table';
-            }
-            // 反馈组件
-            if (id.includes('/modal/') || id.includes('/message/') || id.includes('/notification/') ||
-                id.includes('/popconfirm/') || id.includes('/drawer/')) {
-              return 'antd-feedback';
-            }
-            // 布局组件
-            if (id.includes('/layout/') || id.includes('/grid/') || id.includes('/row/') || 
-                id.includes('/col/') || id.includes('/affix/')) {
-              return 'antd-layout';
-            }
-            // 其他antd组件
-            return 'antd-others';
-          }
-          
+          router: ['react-router-dom'],
+          // Ant Design
+          antd: ['antd'],
           // Ant Design图标
-          if (id.includes('@ant-design/icons')) {
-            return 'antd-icons';
-          }
-          
-          // 图表库
-          if (id.includes('@ant-design/plots')) {
-            return 'charts';
-          }
-          
+          'antd-icons': ['@ant-design/icons'],
           // 工具库
-          if (id.includes('axios') || id.includes('dayjs')) {
-            return 'utils';
-          }
-          
-          // node_modules中的其他库
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
+          utils: ['axios', 'dayjs'],
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split('.') || []
           let extType = info[info.length - 1]
-          
+
           if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetInfo.name || '')) {
             extType = 'media'
           } else if (/\.(png|jpe?g|gif|svg)(\?.*)?$/i.test(assetInfo.name || '')) {
@@ -124,8 +82,5 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
-    'process.env': '{}',
-    'process.platform': '"browser"',
-    'process.version': '"v18.0.0"',
   },
 })

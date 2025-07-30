@@ -40,8 +40,8 @@ model User {
   
   // 关联
   role           Role             @relation(fields: [roleId], references: [id])
-  viewingRecords ViewingRecord[]
-  apiKeys        ApiKey[]
+  viewingRecords ViewingRecord[]  // 添加线索记录关联
+  createdApiKeys ApiKey[]         @relation("UserApiKeys")
 
   @@index([username], map: "idx_username")
   @@index([phone], map: "idx_phone")
@@ -62,7 +62,7 @@ model ApiKey {
   createdBy     Int      @map("created_by")
   
   // 关联
-  creator User @relation(fields: [createdBy], references: [id])
+  creator User @relation("UserApiKeys", fields: [createdBy], references: [id])
   viewingRecords ViewingRecord[]  // 添加带看记录关联
 
   @@index([isActive], map: "idx_apikey_active")
@@ -87,7 +87,7 @@ model Property {
   @@map("properties")
 }
 
-// 带看记录表 - 房源带看记录表
+// 线索记录表 - 房源带看记录表
 model ViewingRecord {
   id                     Int       @id @default(autoincrement())
   tenantName             String?   @map("tenant_name")
@@ -110,6 +110,19 @@ model ViewingRecord {
   source                 String    @default("manual")
   apiKeyId               Int?      @map("api_key_id")  // 添加API Key关联
   remarks                String?
+  
+  // 新增字段
+  sourcePlatform         String?   @map("source_platform")      // 线索来源平台
+  customerRoomType       String?   @map("customer_room_type")    // 客户需求房源
+  sourcePropertyPrice    Float?    @map("source_property_price") // 客户来源房源价格
+  followUpPlatform       String?   @map("follow_up_platform")    // 当前跟进平台
+  customerStatus         String?   @map("customer_status")       // 客户状态
+  
+  // 新增字段 - 带看信息（客户状态为"已约带看"时填写）
+  leadViewingStatus      String?   @map("lead_viewing_status")   // 带看状态（一次带看、二次带看等）
+  viewingProperties      String?   @map("viewing_properties")    // 带看房源（JSON格式，支持多选）
+  customerFeedback       String?   @map("customer_feedback")      // 客户反馈
+  
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
   deletedAt              DateTime? @map("deleted_at")
@@ -120,19 +133,15 @@ model ViewingRecord {
   apiKey   ApiKey?   @relation(fields: [apiKeyId], references: [id])  // 添加API Key关联
   
   @@index([sessionId], map: "idx_session_id")
+  @@index([tenantName], map: "idx_tenant_name")
+  @@index([primaryPhone], map: "idx_primary_phone")
   @@index([viewingStatus], map: "idx_viewing_status")
   @@index([agentId], map: "idx_agent_id")
-  @@index([apiKeyId], map: "idx_api_key_id")
+  @@index([source], map: "idx_source")
   @@index([createdAt], map: "idx_created_at")
-  @@index([deletedAt], map: "idx_deleted_at")
-  
-  // 复合索引 - 提升查询性能
+  @@index([viewingDate], map: "idx_viewing_date")
+  @@index([businessType], map: "idx_business_type")
   @@index([viewingStatus, agentId], map: "idx_status_agent")
-  @@index([createdAt, viewingStatus], map: "idx_created_status")
-  @@index([source, apiKeyId], map: "idx_source_apikey")
   @@index([agentId, createdAt], map: "idx_agent_created")
-  @@index([viewingStatus, createdAt], map: "idx_status_created")
-  @@index([primaryPhone], map: "idx_primary_phone")
-  @@index([tenantName], map: "idx_tenant_name")
   @@map("ai_agent_viewing_records")
 } 

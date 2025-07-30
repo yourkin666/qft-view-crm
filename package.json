@@ -5,7 +5,11 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
-    "start": "concurrently \"npm run backend:start\" \"npm run frontend:build && npm run frontend:preview\"",
+    "start": "chmod +x script/start-services.sh && ./script/start-services.sh",
+    "stop": "chmod +x script/cleanup-ports.sh && ./script/cleanup-ports.sh",
+    "restart": "npm run stop && npm run start",
+    "status": "pm2 status",
+    "logs": "pm2 logs",
     "backend:dev": "cd backend && npm run start:dev",
     "backend:start": "cd backend && npm run start:prod",
     "backend:build": "cd backend && npm run build",
@@ -15,7 +19,12 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build:all": "npm run backend:build && npm run frontend:build",
     "clean": "rm -rf backend/dist frontend/dist backend/node_modules frontend/node_modules node_modules",
-    "db:reset": "cd backend && npx prisma migrate reset --force && npx prisma db seed"
+    "db:reset": "cd backend && npx prisma migrate reset --force && npx prisma db seed",
+    "cleanup": "chmod +x script/cleanup-ports.sh && ./script/cleanup-ports.sh",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop all",
+    "pm2:restart": "pm2 restart all",
+    "pm2:delete": "pm2 delete all"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -28,5 +37,8 @@
     "typescript"
   ],
   "author": "QFT Team",
-  "license": "MIT"
-} 
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}
